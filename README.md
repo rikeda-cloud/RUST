@@ -16,7 +16,13 @@
 * RUSTでは整数と浮動小数点数の四則演算はできない(1 + 0.1)。整数を浮動小数点リテラルに変換すれば可能(1. + 0.1)
 * `let val = 1;`や`let val; val = 1;`で宣言・初期化する
 * `let val = 1; val = 2`;はコンパイルエラーになる。`let mut val = 1; val = 2;`ならコンパイル可能
-* mutableで宣言した変数を変更しない場合にwarningを出す。`#[allow(unused_mut)]`を該当の関数の前に記述するとwarnが出なくなる
+* mutableで宣言した変数を変更しない場合にwarningを出す。
+* エラーやワーニングを制御可能
+```
+#[deny(unused_mut)]
+#[warning(unused_mut)]
+#[allow(unused_mut)]
+```
 * 変数名をアンダーバー始まりにするとunused_variablies警告が出ない
 * 変数名をアンダーバーのみにするとその変数を評価した場合にコンパイルエラーとなる
 * `1 == true` のような型の異なる比較はコンパイルエラー
@@ -48,4 +54,28 @@ for i in 1..limit + 2 {
     limit -= 1;
 }
 print!("{}", limit); // "-1"
+```
+* 配列の宣言は定数でなければならない(`let n = 3; let ary = [0; n]`はエラー)
+* 空の配列やベクタを宣言する場合、 `let ary = [0, 0];`のように初期値に適当な値、要素数は0にする
+* 配列やベクタは `let ary = [1,2,3]; print!("{:?}", ary);` によって一度に出力可能
+* 配列の代入演算はコピー。ベクタの代入演算はコピーではなく移動
+```
+// 配列の場合
+let mut vec1 = [1,2,3];
+println!("{:?}", vec1);
+let vec2 = [3,4,5];
+println!("{:?}", vec2);
+vec1 = vec2;
+println!("{:?}", vec1);
+println!("{:?}", vec2);
+```
+```
+// vectorの場合
+let mut vec1 = vec![1,2,3];
+println!("{:?}", vec1);
+let vec2 = vec![3,4,5];
+println!("{:?}", vec2);
+vec1 = vec2;
+println!("{:?}", vec1);
+println!("{:?}", vec2); // vec2は移動しているのでエラー
 ```
