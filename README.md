@@ -1,7 +1,5 @@
-# Tuning
-
-## RUST
-### 使い方
+# RUST
+## 使い方
 1. `cargo new PROJECT_NAME` RUSTプロジェクトを作成<br>(`cargo new PROJECT_NAME --lib` ライブラリを作成するプロジェクトを作成)
 2. `git init && git add * && git commit -m "[init]"` 最初のコミットを作成
 3. `git remote add origin gitのリポジトリURL && git push -u origin master` リポジトリの初期化
@@ -12,7 +10,12 @@
 8. `cargo test` 記述されたテストの実行
 9. `rustc *.rs` コンパイルする
 
-### memo
+## 命名規則(RUSTは言語レベルで命名規則が指定されている)
+1. 定数名はアッパースネークケース
+2. 型名はアッパーキャメルケース
+3. 変数名やプリミティブ型、フィールド識別子(構造体内のメンバ変数名)はスネークケース
+
+## memo
 * RUSTでは整数と浮動小数点数の四則演算はできない(1 + 0.1)。整数を浮動小数点リテラルに変換すれば可能(1. + 0.1)
 * `let val = 1;`や`let val; val = 1;`で宣言・初期化する
 * `let val = 1; val = 2`;はコンパイルエラーになる。`let mut val = 1; val = 2;`ならコンパイル可能
@@ -110,3 +113,67 @@ print!("{} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {:?} {:?} {:?} {:?} {:?}
 print!("sum = {}", a as i8 + f as i8 + n as i8);
 ```
 * 定数型はconstで宣言する`const N: usize = 1;`
+* 列挙型は`enum EnumName {XXX, YYY, ZZZ}` で宣言する
+* switch文のように使用可能なmatch分がある。列挙型の比較に使用(列挙型は==演算子で比較不可能)
+```
+match e {
+    EnumName::XXX => print!("XXX"),
+    EnumName::YYY => print!("YYY"),
+    EnumName::ZZZ => print!("ZZZ"),
+    _ => {}, // 全ての列挙型を書くのが冗長なときは全てとマッチする_でdefaultに似た処理を記述可能
+}
+
+let val = 3;
+match val {
+    1 => print!("1"),
+    2 => print!("2"),
+    _ => print!("other"),
+}
+// 複雑な enum & match
+#[allow(dead_code)]
+enum E {V1(i8), V2(char, char), V3, }
+let val = E::V2('a', 'b');
+match val {
+    E::V1(1) => print!("v1 1"),
+    E::V1(_) => print!("v1 _"),
+    E::V2('b', _) => print!("v2 b _"),
+    E::V2(_, 'b') => print!("v2 _ b"),
+    E::V2(_, _) => print!("v2 _ _"),
+    E::V3 => print!("v3"),
+}
+// 変数を含むmatch文
+let val = E::v1(42);
+match val {
+    E::v1(1) => print!("v1 1"),
+    E::v1(n) => print!("v1 {}", n),
+    _ => print("_"),
+}
+```
+* タプル
+```
+let data: (i32, f64, char) = (32, 64., 'c');
+print!("{} {} {}", data.0, data.1, data.2);
+print!("{:?}", data);
+// let i: usize = 1;
+// print!("{}", data.i); タプルは変数インデックスでアクセス不可能のためコンパイルエラー
+```
+* 構造体
+```
+struct Data {
+    v1: i32,
+    v2: f64,
+    v3: char,
+}
+let data = Data {
+    v1: 32,
+    v2: 64.,
+    v3: 'c',
+}
+print!("{} {} {}", data.v1, data.v2, data.v3);
+```
+* タプル構造体
+```
+struct Data (i32, f64, char);
+let data = Data(32, 64., 'c');
+print!("{} {} {}", data.0, data.1, data.2);
+```
