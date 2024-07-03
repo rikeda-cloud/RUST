@@ -79,3 +79,34 @@ vec1 = vec2;
 println!("{:?}", vec1);
 println!("{:?}", vec2); // vec2は移動しているのでエラー
 ```
+* 型(オーバーフローするとコンパイルエラーになる？？)
+```
+// i = 符号あり整数, u = 符号なし整数
+let a: i8 = 1;
+let b: i16 = 1;
+let c: i32 = 1; // 型指定されず、型推論しても結論が出ない整数型はi32がデフォルトで使用される
+let d: i64 = 1;
+let e: i128 = 1;
+let f: u8 = 1;
+let g: u16 = 1;
+let h: u32 = 1;
+let i: u64 = 1;
+let j: u128 = 1;
+let k: isize = 1;
+let l: usize = 1; // 配列やベクタのインデックスに使用可能なのはusize型のみ
+let m: f32 = 1.;
+let n: f64 = 1.; // 型指定されず、型推論しても結論が出ない浮動小数点型はf64がデフォルトで使用される
+let o: bool = true; // true or false
+let p: char = 'a'; // C言語と異なり4バイトの型。Unicode文字列を格納できる
+let q: () = (); // 空タプル型。C言語のvoid型に近い
+let r: [char; 3] = ['a', 'b', 'c'];
+let s: [f32; 10] = [0.; 10];
+let t: Vec<char> = vec!['a', 'b', 'c'];
+let u: Vec<i32> = vec![0; 400];
+
+print!("{} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {:?} {:?} {:?} {:?} {:?}", a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u);
+// 'var as type' という構文で明示的に型変換可能
+// 変換後の型で表現できない範囲の値である場合はコンパイルエラー
+print!("sum = {}", a as i8 + f as i8 + n as i8);
+```
+* 定数型はconstで宣言する`const N: usize = 1;`
