@@ -200,3 +200,56 @@ fn main() {
 fn val(v: i8) -> i8 {v + 1}
 fn reff(v: &mut i8) {*v += 1;}
 ```
+* ジェネリック関数(C++では関数テンプレート)
+```
+fn main() {
+    let num1 = 1.1;
+    let num2 = 2.1;
+    println!("{}", f('1', num1, num2));
+    println!("{}", f::<f32>('2', num1, num2));
+    println!("{}", f::<f64>('a', num1, num2));
+}
+
+fn f<T>(ch: char, num1: T, num2: T) -> T {
+    if ch == '1' {return num1;}
+    num2
+}
+```
+* ジェネリック構造体(C++ではクラステンプレート)
+```
+fn main() {
+    let car = Car::<i8, f32> { //　構造体のインスタンス化時は型推論を使用することも可能
+        name: 'c',
+        val1: 1,
+        val2: 2.2,
+    };
+    println!("{} {} {}", car.name, car.val1, car.val2);
+}
+struct Car<T1, T2> {
+    name: char,
+    val1: T1,
+    val2: T2,
+}
+```
+* ジェネリックな列挙型
+```
+enum E<Type1, Type2> {
+    A(Type1),
+    B(Type2),
+    C,
+}
+```
+* Option列挙体(組み込みでSomeとNoneを持つ列挙体が標準ライブラリで提供されている)
+```
+fn main() {
+    let mut v = vec![11, 22, 33];
+    for _ in 0..5 {
+        let item: Option<i32> = v.pop();
+        match item {
+            Some(number) => print!("{}, ", number),
+            None => print!("#, "),
+        }
+    }
+}
+
+```
