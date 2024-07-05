@@ -251,5 +251,33 @@ fn main() {
         }
     }
 }
+let mut v = vec![11, 22, 33];
+for _ in 0..v.len() {
+    print!("{}, ", v.pop().unwrap())
+}
 
 ```
+* Result列挙体(組み込みでOkとErrを持つ列挙体が標準ライブラリで提供されている)
+```
+fn divide(num: f64, den: 64) -> Result<f64, String> {
+    if den == 0. { Err(format!("Divide zero")}
+    Ok(num / den)
+}
+
+match divide(2., 0.) {
+    Ok(val) => ...,
+    Err(msg) => ...,
+}
+
+let result: Result<f64, String> = divide(2., 0.);
+if result.is_ok() {
+    println!("SUCCESS: {}", result.unwrap());
+} else {
+    println!("ERROR: {}", result.is_err());
+}
+```
+
+## メモリ割り当て
+* 静的割り当て・・・staticキーワードを使用。変数の型の指定が必須。値の変更不可
+* スタック割り当て・・・letキーワードを使用。数MB程度。プリミティブ型や配列などのコンパイル時にサイズが判明するもののみでベクタのようなものはスタックに割り当てることは不可能
+* ヒープ割り当て・・・`Box::new`によって割り当てる。メモリはスコープを抜けた時に自動的に開放される。freeする関数は用意されていない！！
