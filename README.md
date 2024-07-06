@@ -59,6 +59,13 @@ for i in 1..limit + 2 {
 }
 print!("{}", limit); // "-1"
 ```
+* 変数のアドレスを表示
+```
+let b1 = true;
+let b2 = true;
+let b3 = true;
+print!("{:p} {:p} {:p}", &b1, &b2, &b3);
+```
 
 ### データ型
 * 配列の宣言は定数でなければならない(`let n = 3; let ary = [0; n]`はエラー)
@@ -281,3 +288,56 @@ if result.is_ok() {
 * 静的割り当て・・・staticキーワードを使用。変数の型の指定が必須。値の変更不可
 * スタック割り当て・・・letキーワードを使用。数MB程度。プリミティブ型や配列などのコンパイル時にサイズが判明するもののみでベクタのようなものはスタックに割り当てることは不可能
 * ヒープ割り当て・・・`Box::new`によって割り当てる。メモリはスコープを抜けた時に自動的に開放される。freeする関数は用意されていない！！
+
+## use
+```
+use std::mem; // C++のusing std;と同様
+use std::mem::*; // ワイルドカードでまとめることも可能
+mem::size_of<i8>();
+```
+
+## クロージャ
+* 型推論可能・１つの式が本体・クロージャ外のスコープの変数にアクセス可能なインライン無名関数
+```
+let mut ary = [2, 3, 1, 0];
+ary.sort_by(|a, b| b.cmp(a)); // |引数, 引数| 式　のような形式で記述する
+ary.sort_by(|a: &i8, b: &i8| -> std::cmp::Ordering {b.cmp(a)}); // |引数: 型, 引数: 型| -> 戻り値 {式}　のような形式でもOK
+print!("{:?}", ary);
+```
+
+## 文字列型
+* str型・・・文字列のリテラルを使用する時の型。内部では文字列へのポインタとサイズが格納されている。Cのように終端文字はない
+* String型・・・動的に操作可能な文字列型。C＋＋のstring型と同様
+```
+// 空のString変数を作成する方法は String::new(), String::from(""), format!("") などもある
+let mut s: String = "".to_string(); // &strからString型に変換する処理
+s.push('1'); // 文字を追加
+s.push('2');
+s.insert(0, '0'); // 文字を位置を指定して挿入
+s.pop(); // 末尾の文字を削除
+s.remove(0); // 位置を指定して文字を削除
+println!("{}", s);
+```
+* 文字列の連結
+```
+fn main() {
+    let s1: String = "123".to_string();
+    let s2: &str = "abc";
+    println!("{}", format!("{}{}", s1, s1));
+    println!("{}", format!("{}{}", s1, s2));
+    println!("{}", format!("{}{}", s2, s1));
+    println!("{}", format!("{}{}", s2, s2));
+}
+```
+* += 演算による文字列の連結
+```
+fn main() {
+    let mut s1: String = "123".to_string();
+    let s2: &str = "abc";
+    let s3: String = "000".to_string();
+    s1 += s2;
+    println!("{}", s1);
+    s1 += &s3; // String同士を連結する場合は String += &String;にする
+    println!("{}", s1);
+}
+```
