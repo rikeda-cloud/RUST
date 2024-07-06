@@ -341,3 +341,40 @@ fn main() {
     println!("{}", s1);
 }
 ```
+## スライス
+```
+fn main() {
+    let ary = [1,3,4,6,2,9,0];
+    println!("min = {}", min(&ary[2..5]));
+    println!("min = {}", min(&ary[0..6]));
+    println!("min = {}", min(&[1,3,4,6,2,9,0][0..6])); // 上の式と同じ
+}
+
+fn min(ary: &[i8]) -> i8 {
+    let mut mini = ary[0];
+    for i in 1..ary.len() {
+        if ary[i] < mini {
+            mini = ary[i];
+        }
+    }
+    mini
+}
+```
+* 文字列のスライス
+```
+fn main() {
+    let s = "my name is".to_string();
+    println!("{}", &s[3..7]);
+}
+```
+* 下限、上限のみのスライス
+```
+fn main() {
+    let ary = [1, 2, 3, 4, 5];
+    let half_size = ary.len() / 2;
+    let ary_to = &ary[..half_size];
+    let ary_from = &ary[half_size..];
+    println!("{:?}", ary_to);
+    println!("{:?}", ary_from);
+}
+```
