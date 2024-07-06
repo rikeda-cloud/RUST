@@ -422,3 +422,55 @@ fn print_iter(items: &[i32]) {
     println!();
 }
 ```
+* iterator adapter(イテレータを受け取り、イテレータを返す関数)
+```
+fn main() {
+    let ary = [1, 2, 10, 0];
+    for item in ary.into_iter().map(|x| x + 1) {
+        print!("{} ", item);
+    }
+    println!();
+    for item in ary.into_iter().filter(|x_ref| 1 <= *x_ref) {
+        print!("{} ", item);
+    }
+    println!();
+    for (i, item) in ary.into_iter().enumerate() {
+        print!("[{},{}] ", i, item);
+    }
+    println!();
+}
+```
+* iterator consumer(イテレータを受け取り、イテレータを返さない関数)
+```
+fn main() {
+    let ary = [1, 2, 0, 3];
+    let string: String = "あいうえおカキクケコ".to_string();
+    let strings = [
+        "abc".to_string(),
+        "Abc".to_string(),
+        "".to_string(),
+        "123".to_string(),
+    ];
+    println!("{}", ary.iter().any(|x| *x < 0));
+    println!("{}", ary.iter().all(|x| 0 <= *x));
+    println!("count = {}; len = {}", string.chars().count(), string.len());
+    println!("{}", ary.iter().sum::<i32>());
+
+    match ary.iter().max() {
+        Some(n) => println!("max = {}", n),
+        None => print!("empty"),
+    }
+    match ary.iter().min() {
+        Some(n) => println!("min = {}", n),
+        None => print!("empty"),
+    }
+    match strings.iter().max() {
+        Some(string) => println!("max = \"{}\"", string),
+        None => print!("empty"),
+    }
+    match strings.iter().min() {
+        Some(string) => println!("min = \"{}\"", string),
+        None => print!("empty"),
+    }
+}
+```
