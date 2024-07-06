@@ -378,3 +378,47 @@ fn main() {
     println!("{:?}", ary_from);
 }
 ```
+## イテレータ
+* 文字列のイテレータ
+```
+fn main() {
+    let s = "あいうえお234カキクケコ";
+    print_chars1(s);
+    print_chars2(s);
+}
+fn print_chars1(s: &str) {
+    let mut iter = s.chars();
+    loop {
+        match iter.next() {
+            Some(c) => print!("{} ", c),
+            None => {
+                println!("END");
+                break;
+            }
+        }
+    }
+}
+fn print_chars2(s: &str) {
+    for c in s.chars() {
+        print!("{} ", c);
+    }
+}
+```
+* 数値型のイテレータ
+```
+fn main() {
+    let vector = vec![10, 20, 30, 40, 50];
+    let array = [10, 20, 30, 40, 50];
+    let range = &vector[0..vector.len()];
+    print_iter(&vector);
+    print_iter(&array);
+    print_iter(&range);
+}
+
+fn print_iter(items: &[i32]) {
+    for item in items.into_iter() {
+        print!("{} ", item);
+    }
+    println!();
+}
+```
