@@ -604,3 +604,77 @@ fn read_from_file(filename: &String) -> Result<String, String> {
     }
 }
 ```
+
+## 構造体を用いたオブジェクト指向プログラミング
+* 基本的なOOP
+```
+fn main() {
+    let mut pairs = pair::Pairs::<String, String>::new();
+    pairs.add("key1".to_string(), "val1".to_string());
+    pairs.add("key2".to_string(), "val2".to_string());
+    pairs.print();
+}
+// 名前空間
+mod pair {
+    // pubをつけると外部に公開
+    pub struct Pairs<Key, Value> {
+        vec_pair: Vec<Pair<Key, Value>>,
+    }
+    impl<Key: std::fmt::Display, Value: std::fmt::Display> Pairs<Key, Value> {
+        // コンストラクタ
+        pub fn new() -> Self {
+            Self {
+                vec_pair: Vec::new(),
+            }
+        }
+        // constではないメンバ関数
+        pub fn add(&mut self, key: Key, value: Value) {
+            self.vec_pair.push(Pair::new(key, value));
+        }
+        // constなメンバ関数
+        pub fn print(self) {
+            for pair in self.vec_pair.into_iter() {
+                pair.print();
+            }
+        }
+    }
+    // pubをつけないと外部に非公開
+    struct Pair<Key, Value> {
+        key: Key,
+        value: Value,
+    }
+    impl<Key: std::fmt::Display, Value: std::fmt::Display> Pair<Key, Value> {
+        fn new(key: Key, value: Value) -> Self {
+            Self { key, value }
+        }
+        fn print(&self) {
+            println!("{}: {}", self.key, self.value);
+        }
+    }
+}
+```
+* typdef的な型の別名の定義
+```
+fn main() {
+    let p = person::Person::new("man".to_string(), 59);
+    p.print();
+}
+
+mod person {
+    type Name = String;
+    type Age = i8;
+
+    pub struct Person {
+        name: Name,
+        age: Age,
+    }
+    impl Person {
+        pub fn new(name: Name, age: Age) -> Self {
+            Self { name, age }
+        }
+        pub fn print(self) {
+            println!("{}[{}]", self.name, self.age);
+        }
+    }
+}
+```
