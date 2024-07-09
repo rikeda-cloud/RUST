@@ -474,3 +474,133 @@ fn main() {
     }
 }
 ```
+* collectによる変換
+```
+fn main() {
+    let int_ary = [1, 2, 3];
+    let char_ary = ['1', '2', '3'];
+    let vector: Vec<i32> = int_ary.into_iter().collect();
+    let string: String = char_ary.into_iter().collect();
+    let char_vector: Vec<char> = string.chars().into_iter().collect();
+    let byte_vector: Vec<u8> = string.bytes().into_iter().collect();
+    let double_int_ary: Vec<i32> = int_ary.into_iter().filter(|x| *x > 0).map(|x| x * 2).collect(); // iterator chain
+    println!("{:?}", vector);
+    println!("{:?}", string);
+    println!("{:?}", char_vector);
+    println!("{:?}", byte_vector);
+    println!("{:?}", double_int_ary);
+}
+```
+
+## コマンドライン引数
+```
+fn main() {
+    let args: std::env::Args = std::env::args();
+    for arg in args {
+        print!("[{}]", arg);
+    }
+    println!();
+    for arg in std::env::args() {
+        print!("[{}]", arg);
+    }
+}
+```
+
+## exitステータス
+```
+fn main() {
+    std::process::exit(1);
+}
+```
+
+## 環境変数
+```
+fn main() {
+    for var in std::env::vars() {
+        println!("[{}] = [{}]", var.0, var.1);
+    }
+    println!();
+
+    println!("{:?}", std::env::var("abc"));
+    std::env::set_var("abc", "abc");
+    println!("{:?}", std::env::var("abc"));
+
+    print!(
+        "{}",
+        if std::env::var("OK").is_ok() {
+            "OK"
+        } else {
+            "NO"
+        }
+    );
+    std::env::set_var("OK", "OK");
+    print!(
+        ", {}",
+        match std::env::var("OK") {
+            Ok(value) => value,
+            Err(err) => format!("Error: {}", err),
+        }
+    );
+}
+```
+
+## Result型の省略記法(Result型を返す関数の呼び出し元に?を置くと正常の場合は処理を続け、異常の場合は処理を行わない)
+```
+fn main () {
+    print!("{:?} ", f1(10));   
+    print!("{:?} ", f1(0));   
+    print!("{:?} ", f1(-1));   
+}
+
+fn f1(x: i32) -> Result<i32, String> {
+    Ok(f2(x * 2)? as i32 * 3)
+}
+fn f2(x: i32) -> Result<i32, String> {
+    if x >= 0 {
+        Ok(x * 4)
+    } else {
+        Err("Error!!".to_string())
+    }
+}
+```
+
+## 型の変換
+```
+fn main() {
+    // T -> String
+    let int_str: String = 42.to_string();
+    let float_str: String = 4.2.to_string();
+    let bool_str: String = true.to_string();
+    println!("{} {} {}", int_str, float_str, bool_str);
+
+    // String -> T
+    println!("{:?}", "true".parse::<bool>());
+    println!("{:?}", "42".parse::<i32>());
+    println!("{:?}", "4.2f".parse::<f32>());
+}
+```
+
+## ファイルへの書き込み・読み込み
+```
+fn main() {
+    let filename: String = "data1.txt".to_string();
+    write_to_file(&filename, "abc".as_bytes()).unwrap();
+    println!("{}", read_from_file(&filename).unwrap());
+}
+
+fn write_to_file(filename: &String, data: &[u8]) -> Result<(), std::io::Error> {
+    use std::io::Write;
+    let mut file = std::fs::File::create(filename).unwrap();
+    file.write_all(data)
+}
+
+fn read_from_file(filename: &String) -> Result<String, String> {
+    use std::io::Read;
+    let mut file = std::fs::File::open(filename).unwrap();
+    let mut contents = String::new();
+    match file.read_to_string(&mut contents) {
+        Ok(_) => Ok(contents),
+        Err(_) => Err("Error".to_string()),
+    }
+}
+```
