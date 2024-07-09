@@ -678,3 +678,56 @@ mod person {
     }
 }
 ```
+
+## トレイト
+* ジェネリック関数の実体化時に関数内で使用されるメソッドがテンプレート型に実装されているかをチェックす
+```
+fn main() {
+    type Ff = f32;
+    print!(
+        "{} {} {}",
+        quartic_root(-100f64),
+        quartic_root(-100f32),
+        quartic_root(-2 as Ff)
+    );
+}
+
+trait HasSquare {
+    fn root(self) -> Self;
+}
+
+trait HasAbs {
+    fn abs(self) -> Self;
+}
+
+impl HasSquare for f32 {
+    fn root(self) -> Self {
+        self.sqrt()
+    }
+}
+
+impl HasSquare for f64 {
+    fn root(self) -> Self {
+        self.sqrt()
+    }
+}
+
+impl HasAbs for f32 {
+    fn abs(self) -> Self {
+        self.abs()
+    }
+}
+
+impl HasAbs for f64 {
+    fn abs(self) -> Self {
+        self.abs()
+    }
+}
+
+fn quartic_root<Number>(x: Number) -> Number
+where
+    Number: HasSquare + HasAbs,
+{
+    x.abs().root().root()
+}
+```
