@@ -680,7 +680,7 @@ mod person {
 ```
 
 ## トレイト
-* ジェネリック関数の実体化時に関数内で使用されるメソッドがテンプレート型に実装されているかをチェックす
+* ジェネリック関数の実体化時に関数内で使用されるメソッドがテンプレート型に実装されているかをチェック
 ```
 fn main() {
     type Ff = f32;
@@ -723,11 +723,32 @@ impl HasAbs for f64 {
         self.abs()
     }
 }
+// trait HasSquareAndAbs: HasSquare + HasAbs {} // トレイト継承により、２つのトレイトをひとつに
+// impl HasSquareAndAbs for f32 {}
+// impl HasSquareAndAbs for f64 {}
 
 fn quartic_root<Number>(x: Number) -> Number
 where
     Number: HasSquare + HasAbs,
+    // Number: HasSquareAndAbs トレイト継承したトレイトを用いて記述
 {
     x.abs().root().root()
+}
+```
+* トレイトを使用した組み込み型やサードパーティ製の型へのメソッドの追加
+```
+trait Len {
+    fn lenn(&self) -> usize;
+}
+
+impl Len for str {
+    fn lenn(&self) -> usize {
+        self.chars().count()
+    }
+}
+
+fn main() {
+    let s = "abcde";
+    println!("len = {}", s.lenn());
 }
 ```
