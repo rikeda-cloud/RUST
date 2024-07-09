@@ -621,7 +621,7 @@ mod pair {
         vec_pair: Vec<Pair<Key, Value>>,
     }
     impl<Key: std::fmt::Display, Value: std::fmt::Display> Pairs<Key, Value> {
-        // コンストラクタ
+        // コンストラクタ的な動きをするナニカ
         pub fn new() -> Self {
             Self {
                 vec_pair: Vec::new(),
@@ -750,5 +750,135 @@ impl Len for str {
 fn main() {
     let s = "abcde";
     println!("len = {}", s.lenn());
+}
+```
+* トレイトを利用した独自構造体のフォーマットの追加
+```
+fn main() {
+    let mut p = person::Persons::new();
+    p.add("test1".to_string(), 1);
+    p.add("test2".to_string(), 2);
+    p.add("test3".to_string(), 3);
+    println!("{:?}", p);
+}
+
+mod person {
+    type Name = String;
+    type Age = i8;
+
+    #[derive(Debug)]
+    pub struct Person {
+        name: Name,
+        age: Age,
+    }
+
+    pub struct Persons {
+        vector_person: Vec<Person>,
+    }
+
+    impl Person {
+        pub fn new(name: Name, age: Age) -> Self {
+            Self { name, age }
+        }
+    }
+
+    impl Persons {
+        pub fn new() -> Self {
+            Self {
+                vector_person: Vec::new(),
+            }
+        }
+
+        pub fn add(&mut self, name: Name, age: Age) {
+            self.vector_person.push(Person::new(name, age));
+        }
+    }
+
+    impl std::fmt::Display for Person {
+        fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+            write!(f, "{} [{}]", self.name, self.age)
+        }
+    }
+    impl std::fmt::Debug for Persons {
+        fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+            write!(f, "{:?}", self.vector_person)
+        }
+    }
+}
+```
+* 許容範囲の広いトレイトを用いたexp関数
+```
+fn main() {
+    println!("{}", expo(2. as f64, 3. as f64));
+    println!("{}", expo(2. as f32, 3. as f32));
+}
+
+trait HasLnExp {
+    fn ln(self) -> Self;
+    fn exp(self) -> Self;
+}
+
+impl HasLnExp for f64 {
+    fn ln(self) -> Self {
+        self.ln()
+    }
+    fn exp(self) -> Self {
+        self.exp()
+    }
+}
+
+impl HasLnExp for f32 {
+    fn ln(self) -> Self {
+        self.ln()
+    }
+    fn exp(self) -> Self {
+        self.exp()
+    }
+}
+
+trait HasMultiply<Rhs> {
+    fn multiply(self, rhs: Rhs) -> Self;
+}
+
+impl<Rhs> HasMultiply<Rhs> for f64
+where
+    Rhs: Into<Self>,
+{
+    fn multiply(self, rhs: Rhs) -> Self {
+        self * rhs.into()
+    }
+}
+
+impl<Rhs> HasMultiply<Rhs> for f32
+where
+    Rhs: Into<Self>,
+{
+    fn multiply(self, rhs: Rhs) -> Self {
+        self * rhs.into()
+    }
+}
+
+fn expo<Base, Exponent>(base: Base, exponent: Exponent) -> Base
+where
+    Base: HasLnExp + HasMultiply<Exponent>,
+{
+    (base.ln().multiply(exponent)).exp()
+}
+```
+* イテレータを引数に受け取り処理をする関数の実装
+```
+fn main() {
+    println!("{:?}", get_third(3..10));
+    println!("{:?}", get_third([1, 3, 3, 4].iter()));
+    println!("{:?}", get_third([1, 3, 3, 4].into_iter()));
+}
+
+fn get_third<Iter>(mut iterator: Iter) -> Option<Iter::Item>
+where
+    Iter: Iterator,
+{
+    iterator.next();
+    iterator.next();
+    iterator.next()
 }
 ```
