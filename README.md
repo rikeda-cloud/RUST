@@ -882,3 +882,63 @@ where
     iterator.next()
 }
 ```
+## OOP
+* コンストラクタ
+```
+struct S {
+    var1: i16,
+    var2: i16,
+}
+
+# 引数なしの場合はnewがよく使用される
+fn new() -> Self {
+    Self {
+        var1: 0,
+        var2: 0
+}
+
+# 引数ありの場合で構造体のメンバ変数名と値の変数名が同じなら省略可能
+fn create(var1: i16, var2: i16) -> Self {
+    Self {
+        var1,
+        var2,
+    }
+}
+```
+
+* デストラクタ
+```
+struct S {
+    var1: i16,
+    var2: i16,
+}
+
+impl Drop for S {
+    fn drop(&mut self) {
+        # ナニカ後処理を記述する
+    }
+}
+```
+* 演算子のオーバーロード
+```
+fn main()   {
+    use complex::Complex;
+    let z1 = Complex {re: 3.8, im: -2.1};
+    let z2 = Complex {re: -1.5, im: 8.6};
+    let z3 = z1 + z2;
+    print!("{} + {}i", z3.re, z3.im);
+}
+
+mod complex {
+    pub struct Complex {
+        pub re: f64,
+        pub im: f64,
+    }
+    impl std::ops::Add for Complex {
+        type Output = Self;
+        fn add(self, rhs: Self) -> Self {
+            Self {re: self.re + rhs.re, im: self.im + rhs.im}
+        }
+    }
+}
+```
