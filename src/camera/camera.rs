@@ -1,33 +1,31 @@
-use crate::camera::utils;
-use opencv::{core, prelude::*, videoio, Result};
+use crate::camera::convert_frame;
+use opencv::prelude::{MatTraitConst, VideoCaptureTrait, VideoCaptureTraitConst};
+use opencv::{core, videoio};
 
 pub struct Camera {
-    pub capture: videoio::VideoCapture,
     pub frame: core::Mat,
-    gray_flag: bool,
+    capture: videoio::VideoCapture,
+    func_convert_frame: convert_frame::FuncConvertFrame,
 }
 
 impl Camera {
-    pub fn new(camera_index: i32, gray_flag: bool) -> Self {
-        let capture = utils::init_camera(camera_index).unwrap();
-        let frame = core::Mat::default();
+    pub fn new(camera_index: i32, frame_mode: &str) -> Self {
+        let capture = videoio::VideoCapture::new(camera_index, videoio::CAP_ANY)
+            .expect("Error: new VideoCapture");
+        capture.is_opened().expect("Error: Camera Init");
+
         Self {
             capture,
-            frame,
-            gray_flag,
+            frame: core::Mat::default(),
+            func_convert_frame: convert_frame::search_convert_frame(frame_mode).unwrap(),
         }
     }
 
-    pub fn capture_frame(&mut self) -> Result<(), String> {
-        self.capture
-            .read(&mut self.frame)
-            .map_err(|e| e.to_string())?;
+    pub fn capture_frame(&mut self) {
+        self.capture.read(&mut self.frame).expect("Error: read");
         if self.frame.empty() {
-            return Err("Error: read".to_string());
+            panic!("Error: read");
         }
-        if self.gray_flag {
-            self.frame = utils::get_gray_frame(&self.frame);
-        }
-        Ok(())
+        self.frame = (self.func_convert_frame)(&self.frame);
     }
 }
