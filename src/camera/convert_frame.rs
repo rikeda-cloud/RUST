@@ -1,4 +1,4 @@
-use opencv::{core, imgproc};
+use opencv::{core, imgproc, prelude::*, xphoto};
 use std::collections::HashMap;
 
 pub type FuncConvertFrame = fn(frame: &core::Mat) -> core::Mat;
@@ -13,15 +13,18 @@ fn create_camera_mode_map() -> HashMap<&'static str, FuncConvertFrame> {
     mode_map.insert("color", convert_to_color);
     mode_map.insert("gray", convert_to_gray);
     mode_map.insert("canny", convert_to_canny);
+    mode_map.insert("white_balance", convert_to_white_balance);
     mode_map
 }
 
+// グレースケール
 pub fn convert_to_gray(frame: &core::Mat) -> core::Mat {
     let mut gray_frame = core::Mat::default();
     imgproc::cvt_color(frame, &mut gray_frame, imgproc::COLOR_BGR2GRAY, 0).unwrap();
     gray_frame
 }
 
+// cannyエッジ検出
 pub fn convert_to_canny(frame: &core::Mat) -> core::Mat {
     // THRESHOLD1 <= エッジとして判定 <= THRESHOLD2
     const THRESHOLD1: f64 = 100.0;
@@ -46,6 +49,17 @@ pub fn convert_to_canny(frame: &core::Mat) -> core::Mat {
     canny_frame
 }
 
+// そのまま
 pub fn convert_to_color(frame: &core::Mat) -> core::Mat {
     frame.clone()
+}
+
+// 色調補正(白をより現実の色に変える)
+pub fn convert_to_white_balance(frame: &core::Mat) -> core::Mat {
+    let mut white_balance_frame = core::Mat::default();
+    let mut grayworld_wb = xphoto::create_grayworld_wb().unwrap();
+    grayworld_wb
+        .balance_white(&frame, &mut white_balance_frame)
+        .unwrap();
+    white_balance_frame
 }

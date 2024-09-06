@@ -5,7 +5,7 @@ use std::time::Instant;
 
 fn main() -> Result<()> {
     const CAMERA_NUMBER: i32 = 14;
-    let mut camera = Camera::new(CAMERA_NUMBER, "canny");
+    let mut camera = Camera::new(CAMERA_NUMBER, "white_balance");
 
     while highgui::wait_key(1).unwrap() != 113 {
         let start_time = Instant::now();
