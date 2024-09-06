@@ -14,6 +14,7 @@ fn create_camera_mode_map() -> HashMap<&'static str, FuncConvertFrame> {
     mode_map.insert("gray", convert_to_gray);
     mode_map.insert("canny", convert_to_canny);
     mode_map.insert("white_balance", convert_to_white_balance);
+    mode_map.insert("filter", convert_to_bilateral_filter);
     mode_map
 }
 
@@ -62,4 +63,19 @@ pub fn convert_to_white_balance(frame: &core::Mat) -> core::Mat {
         .balance_white(&frame, &mut white_balance_frame)
         .unwrap();
     white_balance_frame
+}
+
+// ぼかし(ノイズ除去。エッジ検出と併用可能)
+pub fn convert_to_bilateral_filter(frame: &core::Mat) -> core::Mat {
+    let mut filtered_frame = core::Mat::default();
+    imgproc::bilateral_filter(
+        &frame,
+        &mut filtered_frame,
+        9,    // ダイアメータ
+        75.0, // シグマ色
+        75.0, // シグマ空間
+        core::BORDER_DEFAULT,
+    )
+    .unwrap();
+    filtered_frame
 }
