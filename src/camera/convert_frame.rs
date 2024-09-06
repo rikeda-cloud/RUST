@@ -16,6 +16,7 @@ fn create_camera_mode_map() -> HashMap<&'static str, FuncConvertFrame> {
     mode_map.insert("white_balance", convert_to_white_balance);
     mode_map.insert("filter", convert_to_bilateral_filter);
     mode_map.insert("superpixel", convert_to_superpixel);
+    mode_map.insert("countours", convert_to_countours);
     mode_map
 }
 
@@ -32,7 +33,7 @@ pub fn convert_to_canny(frame: &core::Mat) -> core::Mat {
     const THRESHOLD1: f64 = 100.0;
     const THRESHOLD2: f64 = 200.0;
     // エッジ検出に使用されるソーベル演算子のサイズ
-    // (1, 3, 5, 7) のいずれかの値が有効
+    // (3, 5, 7) のいずれかの値が有効
     const APERTURE_SIZE: i32 = 3;
     // TRUE -> (L2ノルムを使用, 精度向上 & 計算コスト増)
     // FALSE -> (L1ノルムが使用)
@@ -92,4 +93,33 @@ pub fn convert_to_superpixel(frame: &core::Mat) -> core::Mat {
         .unwrap();
 
     superpixeld_frame
+}
+
+// 輪郭
+fn convert_to_countours(frame: &core::Mat) -> core::Mat {
+    let mut contours = core::Vector::<core::Vector<core::Point>>::new();
+    let edges = convert_to_canny(frame);
+    imgproc::find_contours(
+        &edges,                       // 入力画像（エッジ検出後の画像）
+        &mut contours,                // 検出された輪郭が格納されるベクター
+        imgproc::RETR_EXTERNAL,       // 輪郭の検出モード（最外輪郭のみ）
+        imgproc::CHAIN_APPROX_SIMPLE, // 輪郭の近似方法（簡略化された近似）
+        core::Point::new(0, 0),       // 検出のオフセット（画像全体）
+    )
+    .unwrap();
+
+    let mut result = frame.clone();
+    imgproc::draw_contours(
+        &mut result,
+        &contours,
+        -1,                                      // 全ての輪郭を描画
+        core::Scalar::new(0.0, 255.0, 0.0, 0.0), // 青色で描画
+        2,                                       // 線の太さ
+        imgproc::LINE_8,                         // 線のタイプ
+        &frame,                                  // 階層情報
+        0,                                       // 階層レベル 2
+        core::Point::new(0, 0),                  // オフセット
+    )
+    .unwrap();
+    result
 }
