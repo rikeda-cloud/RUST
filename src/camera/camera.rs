@@ -1,11 +1,11 @@
-use crate::camera::convert_frame;
+use crate::camera::frame_handler;
 use opencv::prelude::{MatTraitConst, VideoCaptureTrait, VideoCaptureTraitConst};
 use opencv::{core, videoio};
 
 pub struct Camera {
     pub frame: core::Mat,
     capture: videoio::VideoCapture,
-    func_convert_frame: convert_frame::FuncConvertFrame,
+    frame_handler: frame_handler::FrameHandler,
 }
 
 impl Camera {
@@ -17,7 +17,7 @@ impl Camera {
         Self {
             capture,
             frame: core::Mat::default(),
-            func_convert_frame: convert_frame::search_convert_frame(frame_mode).unwrap(),
+            frame_handler: frame_handler::search_frame_handler(frame_mode).unwrap(),
         }
     }
 
@@ -26,6 +26,15 @@ impl Camera {
         if self.frame.empty() {
             panic!("Error: read");
         }
-        self.frame = (self.func_convert_frame)(&self.frame);
+        self.frame = (self.frame_handler)(&self.frame);
+    }
+
+    pub fn switch_frame_handler(&mut self, mode: String) {
+        match frame_handler::search_frame_handler(&mode) {
+            Some(frame_handler) => {
+                self.frame_handler = frame_handler;
+            }
+            None => {}
+        }
     }
 }

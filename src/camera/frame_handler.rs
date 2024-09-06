@@ -1,23 +1,23 @@
 use opencv::{core, imgproc, prelude::*, ximgproc, xphoto};
 use std::collections::HashMap;
 
-pub type FuncConvertFrame = fn(frame: &core::Mat) -> core::Mat;
+pub type FrameHandler = fn(frame: &core::Mat) -> core::Mat;
 
-pub fn search_convert_frame(mode: &str) -> Option<FuncConvertFrame> {
-    let mode_map = create_camera_mode_map();
-    mode_map.get(mode).copied()
+pub fn search_frame_handler(mode: &str) -> Option<FrameHandler> {
+    let frame_handler = create_frame_handler_map();
+    frame_handler.get(mode).copied()
 }
 
-fn create_camera_mode_map() -> HashMap<&'static str, FuncConvertFrame> {
-    let mut mode_map: HashMap<&str, FuncConvertFrame> = HashMap::new();
-    mode_map.insert("color", convert_to_color);
-    mode_map.insert("gray", convert_to_gray);
-    mode_map.insert("canny", convert_to_canny);
-    mode_map.insert("white_balance", convert_to_white_balance);
-    mode_map.insert("filter", convert_to_bilateral_filter);
-    mode_map.insert("superpixel", convert_to_superpixel);
-    mode_map.insert("countours", convert_to_countours);
-    mode_map
+fn create_frame_handler_map() -> HashMap<&'static str, FrameHandler> {
+    let mut frame_handler_map: HashMap<&str, FrameHandler> = HashMap::new();
+    frame_handler_map.insert("color", convert_to_color);
+    frame_handler_map.insert("gray", convert_to_gray);
+    frame_handler_map.insert("canny", convert_to_canny);
+    frame_handler_map.insert("white_balance", convert_to_white_balance);
+    frame_handler_map.insert("filter", convert_to_bilateral_filter);
+    frame_handler_map.insert("superpixel", convert_to_superpixel);
+    frame_handler_map.insert("countours", convert_to_countours);
+    frame_handler_map
 }
 
 // グレースケール
