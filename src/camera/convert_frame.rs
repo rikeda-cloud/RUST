@@ -1,4 +1,4 @@
-use opencv::{core, imgproc, prelude::*, xphoto};
+use opencv::{core, imgproc, prelude::*, ximgproc, xphoto};
 use std::collections::HashMap;
 
 pub type FuncConvertFrame = fn(frame: &core::Mat) -> core::Mat;
@@ -15,6 +15,7 @@ fn create_camera_mode_map() -> HashMap<&'static str, FuncConvertFrame> {
     mode_map.insert("canny", convert_to_canny);
     mode_map.insert("white_balance", convert_to_white_balance);
     mode_map.insert("filter", convert_to_bilateral_filter);
+    mode_map.insert("superpixel", convert_to_superpixel);
     mode_map
 }
 
@@ -78,4 +79,17 @@ pub fn convert_to_bilateral_filter(frame: &core::Mat) -> core::Mat {
     )
     .unwrap();
     filtered_frame
+}
+
+// スーパーピクセル
+pub fn convert_to_superpixel(frame: &core::Mat) -> core::Mat {
+    let mut superpixeld_frame = core::Mat::default();
+    let mut slic = ximgproc::create_superpixel_slic(frame, ximgproc::SLICO, 25, 200.0).unwrap();
+    slic.iterate(5).unwrap();
+
+    slic.get_labels(&mut superpixeld_frame).unwrap();
+    slic.get_label_contour_mask(&mut superpixeld_frame, true)
+        .unwrap();
+
+    superpixeld_frame
 }
