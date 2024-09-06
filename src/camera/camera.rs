@@ -1,6 +1,7 @@
 use crate::camera::frame_handler;
+use crate::keyboard::KeyNum;
 use opencv::prelude::{MatTraitConst, VideoCaptureTrait, VideoCaptureTraitConst};
-use opencv::{core, videoio};
+use opencv::{core, highgui, videoio};
 
 pub struct Camera {
     pub frame: core::Mat,
@@ -29,12 +30,32 @@ impl Camera {
         self.frame = (self.frame_handler)(&self.frame);
     }
 
-    pub fn switch_frame_handler(&mut self, mode: String) {
+    pub fn handle_key(&mut self) -> bool {
+        match highgui::wait_key(1) {
+            Ok(key) => match KeyNum::try_from(key) {
+                Ok(KeyNum::ESC) => false,
+                Ok(KeyNum::Num1) => self.switch_frame_handler("color".to_string()),
+                Ok(KeyNum::Num2) => self.switch_frame_handler("gray".to_string()),
+                Ok(KeyNum::Num3) => self.switch_frame_handler("canny".to_string()),
+                Ok(KeyNum::Num4) => self.switch_frame_handler("white_balance".to_string()),
+                Ok(KeyNum::Num5) => self.switch_frame_handler("filter".to_string()),
+                Ok(KeyNum::Num6) => self.switch_frame_handler("superpixel".to_string()),
+                Ok(KeyNum::Num7) => self.switch_frame_handler("countours".to_string()),
+                Ok(KeyNum::Num8) => self.switch_frame_handler("fsrcnn".to_string()),
+                Ok(KeyNum::Num9) => self.switch_frame_handler("espcn".to_string()),
+                _ => true,
+            },
+            Err(_) => false,
+        }
+    }
+
+    fn switch_frame_handler(&mut self, mode: String) -> bool {
         match frame_handler::search_frame_handler(&mode) {
             Some(frame_handler) => {
                 self.frame_handler = frame_handler;
+                true
             }
-            None => {}
+            None => true,
         }
     }
 }

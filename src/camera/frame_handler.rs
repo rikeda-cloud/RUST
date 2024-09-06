@@ -1,4 +1,4 @@
-use opencv::{core, imgproc, prelude::*, ximgproc, xphoto};
+use opencv::{core, dnn_superres, imgproc, prelude::*, ximgproc, xphoto};
 use std::collections::HashMap;
 
 pub type FrameHandler = fn(frame: &core::Mat) -> core::Mat;
@@ -17,6 +17,8 @@ fn create_frame_handler_map() -> HashMap<&'static str, FrameHandler> {
     frame_handler_map.insert("filter", convert_to_bilateral_filter);
     frame_handler_map.insert("superpixel", convert_to_superpixel);
     frame_handler_map.insert("countours", convert_to_countours);
+    frame_handler_map.insert("fsrcnn", convert_to_fsrcnn);
+    frame_handler_map.insert("espcn", convert_to_espcn);
     frame_handler_map
 }
 
@@ -121,5 +123,27 @@ fn convert_to_countours(frame: &core::Mat) -> core::Mat {
         core::Point::new(0, 0),                  // オフセット
     )
     .unwrap();
+    result
+}
+
+// 超解像処理(FSRCNN)
+fn convert_to_fsrcnn(frame: &core::Mat) -> core::Mat {
+    let mut sr = dnn_superres::DnnSuperResImpl::create().unwrap();
+    sr.read_model("model/fsrcnn.pb").unwrap();
+    sr.set_model("fsrcnn", 2).unwrap();
+
+    let mut result = Mat::default();
+    sr.upsample(&frame, &mut result).unwrap();
+    result
+}
+
+// 超解像処理(ESPCN)
+fn convert_to_espcn(frame: &core::Mat) -> core::Mat {
+    let mut sr = dnn_superres::DnnSuperResImpl::create().unwrap();
+    sr.read_model("model/espcn.pb").unwrap();
+    sr.set_model("espcn", 2).unwrap();
+
+    let mut result = Mat::default();
+    sr.upsample(&frame, &mut result).unwrap();
     result
 }
