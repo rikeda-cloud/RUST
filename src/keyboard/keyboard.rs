@@ -1,5 +1,6 @@
 pub enum KeyNum {
     ESC = 27,
+    Num0 = 48,
     Num1 = 49,
     Num2 = 50,
     Num3 = 51,
@@ -17,6 +18,7 @@ impl TryFrom<i32> for KeyNum {
     fn try_from(value: i32) -> Result<Self, Self::Error> {
         match value {
             27 => Ok(KeyNum::ESC),
+            48 => Ok(KeyNum::Num0),
             49 => Ok(KeyNum::Num1),
             50 => Ok(KeyNum::Num2),
             51 => Ok(KeyNum::Num3),

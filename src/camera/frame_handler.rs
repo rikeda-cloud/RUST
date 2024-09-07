@@ -19,6 +19,7 @@ fn create_frame_handler_map() -> HashMap<&'static str, FrameHandler> {
     frame_handler_map.insert("countours", convert_to_countours);
     frame_handler_map.insert("fsrcnn", convert_to_fsrcnn);
     frame_handler_map.insert("espcn", convert_to_espcn);
+    frame_handler_map.insert("binary", convert_to_binary);
     frame_handler_map
 }
 
@@ -146,4 +147,21 @@ fn convert_to_espcn(frame: &core::Mat) -> core::Mat {
     let mut result = Mat::default();
     sr.upsample(&frame, &mut result).unwrap();
     result
+}
+
+// 白黒の二値化
+fn convert_to_binary(frame: &core::Mat) -> core::Mat {
+    const THRESHOLD: f64 = 200.0;
+    const MAX_VALUE: f64 = 255.0;
+    let mut binary_frame = core::Mat::default();
+
+    imgproc::threshold(
+        &convert_to_gray(&frame),
+        &mut binary_frame,
+        THRESHOLD,
+        MAX_VALUE,
+        imgproc::THRESH_BINARY,
+    )
+    .unwrap();
+    binary_frame
 }

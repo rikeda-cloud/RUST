@@ -34,6 +34,7 @@ impl Camera {
         match highgui::wait_key(1) {
             Ok(key) => match KeyNum::try_from(key) {
                 Ok(KeyNum::ESC) => false,
+                Ok(KeyNum::Num0) => self.switch_frame_handler("binary".to_string()),
                 Ok(KeyNum::Num1) => self.switch_frame_handler("color".to_string()),
                 Ok(KeyNum::Num2) => self.switch_frame_handler("gray".to_string()),
                 Ok(KeyNum::Num3) => self.switch_frame_handler("canny".to_string()),
