@@ -87,7 +87,7 @@ pub fn convert_to_bilateral_filter(frame: &core::Mat) -> core::Mat {
 // スーパーピクセル
 pub fn convert_to_superpixel(frame: &core::Mat) -> core::Mat {
     let mut superpixeld_frame = core::Mat::default();
-    let mut slic = ximgproc::create_superpixel_slic(frame, ximgproc::SLICO, 25, 200.0).unwrap();
+    let mut slic = ximgproc::create_superpixel_slic(frame, ximgproc::SLIC, 25, 100.0).unwrap();
     slic.iterate(5).unwrap();
 
     slic.get_labels(&mut superpixeld_frame).unwrap();
