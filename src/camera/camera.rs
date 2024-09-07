@@ -22,12 +22,13 @@ impl Camera {
         }
     }
 
-    pub fn capture_frame(&mut self) {
+    pub fn capture_frame(&mut self) -> Result<(), opencv::Error> {
         self.capture.read(&mut self.frame).expect("Error: read");
         if self.frame.empty() {
             panic!("Error: read");
         }
-        self.frame = (self.frame_handler)(&self.frame);
+        self.frame = (self.frame_handler)(&self.frame)?;
+        Ok(())
     }
 
     pub fn handle_key(&mut self) -> bool {

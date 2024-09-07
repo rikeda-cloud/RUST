@@ -10,9 +10,16 @@ fn main() -> Result<()> {
 
     while camera.handle_key() {
         let start_time = Instant::now();
-        camera.capture_frame();
-        highgui::imshow("VIDEO", &camera.frame)?;
-        println!("CaptureTime: {:.4}", start_time.elapsed().as_secs_f64());
+        match camera.capture_frame() {
+            Ok(_) => {
+                highgui::imshow("VIDEO", &camera.frame)?;
+                println!("CaptureTime: {:.4}", start_time.elapsed().as_secs_f64());
+            }
+            Err(e) => {
+                println!("{:?}", e);
+                break;
+            }
+        }
     }
     Ok(())
 }
