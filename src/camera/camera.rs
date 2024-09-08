@@ -52,6 +52,22 @@ impl Camera {
         }
     }
 
+    pub fn handle_key_websocket(&mut self, c: i32) -> bool {
+        match c {
+            1 => self.switch_frame_handler("binary".to_string()),
+            2 => self.switch_frame_handler("color".to_string()),
+            3 => self.switch_frame_handler("gray".to_string()),
+            4 => self.switch_frame_handler("canny".to_string()),
+            5 => self.switch_frame_handler("white_balance".to_string()),
+            6 => self.switch_frame_handler("filter".to_string()),
+            7 => self.switch_frame_handler("superpixel".to_string()),
+            8 => self.switch_frame_handler("countours".to_string()),
+            9 => self.switch_frame_handler("fsrcnn".to_string()),
+            0 => self.switch_frame_handler("espcn".to_string()),
+            _ => true,
+        }
+    }
+
     fn switch_frame_handler(&mut self, mode: String) -> bool {
         match frame_handler::search_frame_handler(&mode) {
             Some(frame_handler) => {

@@ -1,10 +1,12 @@
 use crate::camera::camera::Camera;
 use crate::streaming::generate_response::*;
+use crate::streaming::handle_websocket::*;
 use axum::extract::{ws, Path};
 use axum::response::IntoResponse;
-use opencv::prelude::VectorToVec;
-use opencv::{core, imgcodecs};
+use futures::StreamExt;
 use phf::phf_map;
+use std::sync::Arc;
+use tokio::sync::Mutex;
 
 pub async fn root_handler() -> impl IntoResponse {
     static_content_handler(Path("".to_string())).await
@@ -15,6 +17,7 @@ pub async fn static_content_handler(Path(file): Path<String>) -> impl IntoRespon
         "" => include_str!("static/index.html"),
         "index.html" => include_str!("static/index.html"),
         "websocket.js" => include_str!("static/websocket.js"),
+        "streaming.css" => include_str!("static/streaming.css"),
     };
     match HTML_DATA_MAP.get(file.as_str()) {
         Some(data) => generate_text_response(data),
@@ -23,27 +26,20 @@ pub async fn static_content_handler(Path(file): Path<String>) -> impl IntoRespon
 }
 
 pub async fn websocket_handler(ws: ws::WebSocketUpgrade) -> impl IntoResponse {
-    ws.on_upgrade(|socket| async {
-        send_camera_frame(socket).await;
+    ws.on_upgrade(|socket| {
+        const CAMERA_NUMBER: i32 = 14;
+        let camera = Arc::new(Mutex::new(Camera::new(CAMERA_NUMBER, "color")));
+        let (send_socket, recv_socket) = socket.split();
+
+        let camera_for_recv = Arc::clone(&camera);
+        tokio::spawn(async move {
+            recv_key_event(recv_socket, camera_for_recv).await;
+        });
+
+        let camera_for_send = Arc::clone(&camera);
+        tokio::spawn(async move {
+            send_camera_frame(send_socket, camera_for_send).await;
+        });
+        async { () }
     })
-}
-
-async fn send_camera_frame(mut socket: ws::WebSocket) {
-    const CAMERA_NUMBER: i32 = 14;
-    let mut camera = Camera::new(CAMERA_NUMBER, "color");
-
-    loop {
-        let _ = camera.capture_frame();
-        let mut buf = core::Vector::new();
-        imgcodecs::imencode(".jpg", &camera.frame, &mut buf, &Default::default()).unwrap();
-
-        // WebSocketでバイナリデータとして送信
-        if socket
-            .send(ws::Message::Binary(buf.to_vec()))
-            .await
-            .is_err()
-        {
-            break;
-        }
-    }
 }

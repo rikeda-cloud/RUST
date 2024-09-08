@@ -3,12 +3,29 @@
 
 <head>
 	<title>WebSocket Streaming</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" href="streaming.css">
 	<script type="text/javascript" src="websocket.js"></script>
 </head>
 
 <body>
 	<h1>WebSocket Streaming</h1>
 	<img id="stream" src="" alt="Streaming..." />
+	<!-- <img id="stream" src="" alt="Streaming..." width="640" height="480" /> -->
+	<div id="number-buttons">
+		<!-- Buttons for numbers 0 to 9 -->
+		<button onclick="sendNumber(1)">1</button>
+		<button onclick="sendNumber(2)">2</button>
+		<button onclick="sendNumber(3)">3</button>
+		<button onclick="sendNumber(4)">4</button>
+		<button onclick="sendNumber(5)">5</button>
+		<button onclick="sendNumber(6)">6</button>
+		<button onclick="sendNumber(7)">7</button>
+		<button onclick="sendNumber(8)">8</button>
+		<button onclick="sendNumber(9)">9</button>
+		<button onclick="sendNumber(0)">0</button>
+	</div>
 </body>
 
 </html>

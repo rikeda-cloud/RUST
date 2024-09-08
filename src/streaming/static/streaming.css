@@ -1,0 +1,59 @@
+/* 全体のスタイリング */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f0f0f0;
+}
+
+/* ページのタイトル */
+h1 {
+    color: #333;
+    margin-bottom: 20px;
+}
+
+/* 画像のスタイリング */
+img {
+    display: block;
+    margin: 0 auto;
+    border: 2px solid #333;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+}
+
+/* ボタンを横並びに整列 */
+#number-buttons {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    margin-top: 20px;
+}
+
+/* ボタンのスタイル */
+button {
+    padding: 15px 20px;
+    font-size: 18px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+/* ホバー時のスタイル */
+button:hover {
+    background-color: #0056b3;
+}
+
+/* ボタンのクリック時のスタイル */
+button:active {
+    background-color: #003f7f;
+    transform: scale(0.98);
+}
+

@@ -10,3 +10,7 @@ anyhow = "1"
 axum = { version = "0.7.5", features = ["ws"] }
 tokio = { version = "1", features = ["full"] }
 phf = { version = "*", features = ["macros"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+futures = "*"
+futures-util = "*"
