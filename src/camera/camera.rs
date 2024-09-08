@@ -31,6 +31,7 @@ impl Camera {
         Ok(())
     }
 
+    #[allow(dead_code)]
     pub fn handle_key(&mut self) -> bool {
         match highgui::wait_key(1) {
             Ok(key) => match KeyNum::try_from(key) {

@@ -7,4 +7,6 @@ edition = "2021"
 opencv = "0.92.0"
 bytes = "1"
 anyhow = "1"
-
+axum = { version = "0.7.5", features = ["ws"] }
+tokio = { version = "1", features = ["full"] }
+phf = { version = "*", features = ["macros"] }

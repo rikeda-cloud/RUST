@@ -1,25 +1,15 @@
 mod camera;
 mod keyboard;
-use camera::Camera;
-use opencv::{highgui, Result};
-use std::time::Instant;
+mod streaming;
+use axum::{routing::get, Router};
+use streaming::handlers;
 
-fn main() -> Result<()> {
-    const CAMERA_NUMBER: i32 = 14;
-    let mut camera = Camera::new(CAMERA_NUMBER, "espcn");
-
-    while camera.handle_key() {
-        let start_time = Instant::now();
-        match camera.capture_frame() {
-            Ok(_) => {
-                highgui::imshow("VIDEO", &camera.frame)?;
-                println!("CaptureTime: {:.4}", start_time.elapsed().as_secs_f64());
-            }
-            Err(e) => {
-                println!("{:?}", e);
-                break;
-            }
-        }
-    }
-    Ok(())
+#[tokio::main]
+async fn main() {
+    let app = Router::new()
+        .route("/", get(handlers::root_handler))
+        .route("/ws", get(handlers::websocket_handler))
+        .route("/:file", get(handlers::static_content_handler));
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await.unwrap();
+    axum::serve(listener, app).await.unwrap();
 }
