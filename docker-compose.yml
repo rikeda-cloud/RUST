@@ -1,0 +1,15 @@
+services:
+  rust:
+    container_name: rust
+    image: rust
+    build:
+      context: ./project/
+    init: true
+    ports:
+      [8080:8080]
+    devices:
+      - "/dev/video${DEV_NUMBER:-0}:/dev/video${DEV_NUMBER:-0}"
+    environment:
+      - DEV_NUMBER=${DEV_NUMBER:-0}
+    tty: true
+    stdin_open: true

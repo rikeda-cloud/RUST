@@ -10,8 +10,8 @@ pub struct Camera {
 }
 
 impl Camera {
-    pub fn new(camera_index: i32, frame_mode: &str) -> Self {
-        let capture = videoio::VideoCapture::new(camera_index, videoio::CAP_ANY)
+    pub fn new(dev_number: i32, frame_mode: &str) -> Self {
+        let capture = videoio::VideoCapture::new(dev_number, videoio::CAP_ANY)
             .expect("Error: new VideoCapture");
         capture.is_opened().expect("Error: Camera Init");
 

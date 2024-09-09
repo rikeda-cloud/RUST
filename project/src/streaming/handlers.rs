@@ -27,8 +27,8 @@ pub async fn static_content_handler(Path(file): Path<String>) -> impl IntoRespon
 
 pub async fn websocket_handler(ws: ws::WebSocketUpgrade) -> impl IntoResponse {
     ws.on_upgrade(|socket| {
-        const CAMERA_NUMBER: i32 = 14;
-        let camera = Arc::new(Mutex::new(Camera::new(CAMERA_NUMBER, "color")));
+        let dev_number: i32 = get_dev_number_from_env();
+        let camera = Arc::new(Mutex::new(Camera::new(dev_number, "color")));
         let (send_socket, recv_socket) = socket.split();
 
         let camera_for_recv = Arc::clone(&camera);
@@ -42,4 +42,15 @@ pub async fn websocket_handler(ws: ws::WebSocketUpgrade) -> impl IntoResponse {
         });
         async { () }
     })
+}
+
+fn get_dev_number_from_env() -> i32 {
+    const DEFAULT_DEV_NUMBER: i32 = 0;
+    match std::env::var("DEV_NUMBER") {
+        Ok(str_dev_number) => match str_dev_number.parse::<i32>() {
+            Ok(dev_number) => dev_number,
+            Err(_) => DEFAULT_DEV_NUMBER,
+        },
+        Err(_) => DEFAULT_DEV_NUMBER,
+    }
 }
