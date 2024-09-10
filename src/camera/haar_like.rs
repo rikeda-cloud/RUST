@@ -1,3 +1,4 @@
+use crate::camera::frame_handler;
 use opencv::core::{Mat, Rect};
 use opencv::prelude::*;
 use rayon::prelude::*;
@@ -8,8 +9,9 @@ pub fn calc_haar_like_vec(
     divisions: i32,
     rect_height: i32,
 ) -> Result<Vec<f64>, opencv::Error> {
-    let width = frame.cols();
-    let height = frame.rows();
+    let gray_frame = frame_handler::convert_to_gray(&frame)?;
+    let width = gray_frame.cols();
+    let height = gray_frame.rows();
     let width_step = width / divisions as i32;
 
     // 並列処理を導入
@@ -18,7 +20,7 @@ pub fn calc_haar_like_vec(
         .map(|i| {
             let x: i32 = i * width_step;
             let roi = Rect::new(x, 0, width_step, height);
-            let cropped_mat = frame.roi(roi).unwrap().try_clone().unwrap();
+            let cropped_mat = gray_frame.roi(roi).unwrap().try_clone().unwrap();
             calc_haar_like(&cropped_mat, rect_height).unwrap_or(0.0)
         })
         .collect();
@@ -57,19 +59,22 @@ fn calc_haar_like(frame: &Mat, rect_height: i32) -> Result<f64, opencv::Error> {
     Ok(max_idx as f64 / diff_array.len() as f64)
 }
 
-// 畳み込み関数（シンプルに計算）
 fn convolve(array: &[f64], kernel: &[f64]) -> Vec<f64> {
     let kernel_size = kernel.len();
-    let mut result = Vec::with_capacity(array.len() - kernel_size + 1);
+    let array_len = array.len();
+    let mut result = Vec::with_capacity(array_len - kernel_size + 1);
 
-    // SIMDにより並列化が可能なループ
-    for i in 0..=array.len() - kernel_size {
-        let sum: f64 = array[i..i + kernel_size]
-            .iter()
-            .zip(kernel.iter())
-            .map(|(a, b)| a * b)
-            .sum();
+    let mut sum: f64 = 0.0;
+    for i in 0..kernel_size {
+        sum += array[i] * kernel[kernel_size - 1 - i];
+    }
+    result.push(sum);
+
+    let _: f64 = kernel.iter().sum();
+    for i in kernel_size..array_len {
+        sum += array[i] * kernel[0] - array[i - kernel_size] * kernel[kernel_size - 1];
         result.push(sum);
     }
+
     result
 }

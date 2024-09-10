@@ -95,7 +95,7 @@ pub fn convert_to_superpixel(frame: &Mat) -> Result<Mat, opencv::Error> {
 }
 
 // 輪郭
-fn convert_to_countours(frame: &Mat) -> Result<Mat, opencv::Error> {
+pub fn convert_to_countours(frame: &Mat) -> Result<Mat, opencv::Error> {
     let mut result = frame.clone();
     let mut contours = Vector::<Vector<Point>>::new();
     let edges = convert_to_canny(frame)?;
@@ -122,7 +122,7 @@ fn convert_to_countours(frame: &Mat) -> Result<Mat, opencv::Error> {
 }
 
 // 超解像処理(FSRCNN)
-fn convert_to_fsrcnn(frame: &Mat) -> Result<Mat, opencv::Error> {
+pub fn convert_to_fsrcnn(frame: &Mat) -> Result<Mat, opencv::Error> {
     let mut result = Mat::default();
     let mut sr = dnn_superres::DnnSuperResImpl::create()?;
     sr.read_model("model/fsrcnn.pb")?;
@@ -133,7 +133,7 @@ fn convert_to_fsrcnn(frame: &Mat) -> Result<Mat, opencv::Error> {
 }
 
 // 超解像処理(ESPCN)
-fn convert_to_espcn(frame: &Mat) -> Result<Mat, opencv::Error> {
+pub fn convert_to_espcn(frame: &Mat) -> Result<Mat, opencv::Error> {
     let mut result = Mat::default();
     let mut sr = dnn_superres::DnnSuperResImpl::create()?;
     sr.read_model("model/espcn.pb")?;
@@ -144,7 +144,7 @@ fn convert_to_espcn(frame: &Mat) -> Result<Mat, opencv::Error> {
 }
 
 // 白黒の二値化
-fn convert_to_binary(frame: &Mat) -> Result<Mat, opencv::Error> {
+pub fn convert_to_binary(frame: &Mat) -> Result<Mat, opencv::Error> {
     const THRESHOLD: f64 = 200.0;
     const MAX_VALUE: f64 = 255.0;
     let mut binary_frame = Mat::default();
@@ -159,14 +159,13 @@ fn convert_to_binary(frame: &Mat) -> Result<Mat, opencv::Error> {
     Ok(binary_frame)
 }
 
-fn convert_to_haar_like(frame: &Mat) -> Result<Mat, opencv::Error> {
+pub fn convert_to_haar_like(frame: &Mat) -> Result<Mat, opencv::Error> {
     // 取得する特徴の数, frameを横に区切る数
     const DIVISIONS: i32 = 40;
-    const RECT_HEIGHT: i32 = 20;
+    const RECT_HEIGHT: i32 = 15;
     const BLACK: Scalar = Scalar::new(0.0, 0.0, 0.0, 0.0);
-    let gray_frame = convert_to_gray(&frame)?;
     let mut haar_like_frame = frame.clone();
-    let haar_like_vec = haar_like::calc_haar_like_vec(&gray_frame, DIVISIONS, RECT_HEIGHT)?;
+    let haar_like_vec = haar_like::calc_haar_like_vec(&frame, DIVISIONS, RECT_HEIGHT)?;
     let width = frame.cols();
     let height = frame.rows();
     let width_step = width / DIVISIONS as i32;
