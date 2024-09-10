@@ -28,7 +28,7 @@ pub async fn static_content_handler(Path(file): Path<String>) -> impl IntoRespon
 pub async fn websocket_handler(ws: ws::WebSocketUpgrade) -> impl IntoResponse {
     ws.on_upgrade(|socket| {
         const CAMERA_NUMBER: i32 = 14;
-        let camera = Arc::new(Mutex::new(Camera::new(CAMERA_NUMBER, "haar")));
+        let camera = Arc::new(Mutex::new(Camera::new(CAMERA_NUMBER, "color")));
         let (send_socket, recv_socket) = socket.split();
 
         let camera_for_recv = Arc::clone(&camera);
