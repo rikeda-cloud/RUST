@@ -1,6 +1,9 @@
 use crate::camera::frame_handler;
 use crate::keyboard::KeyNum;
 use opencv::prelude::{MatTraitConst, VideoCaptureTrait, VideoCaptureTraitConst};
+use opencv::videoio::{
+    VideoCapture, CAP_PROP_FRAME_HEIGHT as CAP_H, CAP_PROP_FRAME_WIDTH as CAP_W,
+};
 use opencv::{core, highgui, videoio};
 
 pub struct Camera {
@@ -11,14 +14,16 @@ pub struct Camera {
 
 impl Camera {
     pub fn new(camera_index: i32, frame_mode: &str) -> Self {
-        let capture = videoio::VideoCapture::new(camera_index, videoio::CAP_ANY)
-            .expect("Error: new VideoCapture");
+        let mut capture = VideoCapture::new(camera_index, videoio::CAP_ANY).expect("Error: Camera");
         capture.is_opened().expect("Error: Camera Init");
+        capture.set(CAP_W, 640.0).expect("Error: Width Size");
+        capture.set(CAP_H, 480.0).expect("Error: Height Size");
+        let frame_handler = frame_handler::search_frame_handler(frame_mode).expect("Error: mode");
 
         Self {
             capture,
             frame: core::Mat::default(),
-            frame_handler: frame_handler::search_frame_handler(frame_mode).unwrap(),
+            frame_handler,
         }
     }
 
