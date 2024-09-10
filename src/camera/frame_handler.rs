@@ -1,4 +1,6 @@
+use opencv::core::{Mat, Rect, Scalar};
 use opencv::{core, dnn_superres, imgproc, prelude::*, ximgproc, xphoto};
+use std::cmp::Ordering;
 use std::collections::HashMap;
 
 pub type FrameHandler = fn(frame: &core::Mat) -> Result<core::Mat, opencv::Error>;
@@ -20,6 +22,7 @@ fn create_frame_handler_map() -> HashMap<&'static str, FrameHandler> {
     frame_handler_map.insert("fsrcnn", convert_to_fsrcnn);
     frame_handler_map.insert("espcn", convert_to_espcn);
     frame_handler_map.insert("binary", convert_to_binary);
+    frame_handler_map.insert("haar", convert_to_haar_like);
     frame_handler_map
 }
 
@@ -154,4 +157,93 @@ fn convert_to_binary(frame: &core::Mat) -> Result<core::Mat, opencv::Error> {
         imgproc::THRESH_BINARY,
     )?;
     Ok(binary_frame)
+}
+
+fn convert_to_haar_like(frame: &core::Mat) -> Result<core::Mat, opencv::Error> {
+    let frame = convert_to_gray(&frame).unwrap();
+    // 取得する特徴の数。frameを横に区切る数
+    const DIVISIONS: i32 = 10;
+    // frameの縦幅における特徴の場所を0~1の間で取得
+    let result: Vec<f64> = color_ratio(&frame, DIVISIONS);
+    let mut haar_like_frame = frame.clone();
+    let black = Scalar::new(0.0, 0.0, 0.0, 0.0);
+    let width = frame.cols();
+    let height = frame.rows();
+    let width_step = width / DIVISIONS as i32;
+
+    for i in 0..DIVISIONS {
+        let x = width_step * i;
+        let y = (result[i as usize] * height as f64) as i32;
+        let rect = Rect::new(x, y, width_step, 1);
+        let _ = imgproc::rectangle(&mut haar_like_frame, rect, black, 1, imgproc::LINE_8, 0);
+        println!("{} {}", x, y);
+        println!("");
+    }
+    Ok(haar_like_frame)
+}
+
+fn color_ratio(frame: &core::Mat, divisions: i32) -> Vec<f64> {
+    const RECT_HEIGHT: i32 = 20;
+    let mut result: Vec<f64> = vec![];
+    let width = frame.cols();
+    let height = frame.rows();
+    let width_step = width / divisions as i32;
+
+    for i in 0..divisions {
+        let x: i32 = i * width_step;
+        let roi = Rect::new(x, 0, width_step, height);
+        let cropped_mat = frame.roi(roi).unwrap().try_clone().unwrap();
+        let pos: f64 = calc_haar_like(&cropped_mat, RECT_HEIGHT);
+        result.push(pos);
+    }
+    result
+}
+
+fn calc_haar_like(frame: &Mat, rect_height: i32) -> f64 {
+    // 1. Convert the image to a 1D array (sum along axis 1)
+    let rows = frame.rows();
+    let cols = frame.cols();
+    let mut array_1d = Vec::with_capacity(rows as usize);
+
+    for r in 0..rows {
+        let mut sum = 0.0;
+        for c in 0..cols {
+            let pixel = frame.at_2d::<u8>(r, c).unwrap();
+            sum += *pixel as f64;
+        }
+        array_1d.push(sum);
+    }
+
+    // 2. Perform convolution
+    let kernel = vec![1.0 / rect_height as f64; rect_height as usize];
+    let convolved_array = convolve(&array_1d, &kernel);
+
+    // 3. Compute the difference array
+    let diff_array: Vec<f64> = convolved_array.windows(2).map(|w| w[1] - w[0]).collect();
+
+    // 4. Find the index of the maximum value in the difference array
+    let max_idx = diff_array
+        .iter()
+        .enumerate()
+        .max_by(|a, b| a.1.partial_cmp(b.1).unwrap_or(Ordering::Equal))
+        .map(|(idx, _)| idx)
+        .unwrap_or(0);
+
+    max_idx as f64 / diff_array.len() as f64
+}
+
+// 畳み込み操作を実行する関数
+fn convolve(array: &[f64], kernel: &[f64]) -> Vec<f64> {
+    let kernel_size = kernel.len();
+    let mut result = Vec::with_capacity(array.len() - kernel_size + 1);
+
+    for i in 0..=array.len() - kernel_size {
+        let sum: f64 = array[i..i + kernel_size]
+            .iter()
+            .zip(kernel.iter())
+            .map(|(a, b)| a * b)
+            .sum();
+        result.push(sum);
+    }
+    result
 }
