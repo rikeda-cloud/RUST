@@ -1,5 +1,7 @@
 use crate::camera::frame_handler;
-use opencv::core::{Mat, Rect};
+use ndarray::prelude::*;
+use ndarray::{Array2, ArrayView2};
+use opencv::core::Mat;
 use opencv::prelude::*;
 use rayon::prelude::*;
 use std::cmp::Ordering;
@@ -10,43 +12,43 @@ pub fn calc_haar_like_vec(
     rect_height: i32,
 ) -> Result<Vec<f64>, opencv::Error> {
     let gray_frame = frame_handler::convert_to_gray(&frame)?;
-    let width = gray_frame.cols();
-    let height = gray_frame.rows();
-    let width_step = width / divisions as i32;
+    let width = gray_frame.cols() as usize;
+    let height = gray_frame.rows() as usize;
+    let width_step = width / divisions as usize;
 
-    // 並列処理を導入
+    let array = Array2::<u8>::from_shape_vec(
+        (height, width),
+        gray_frame
+            .data_bytes()
+            .unwrap()
+            .iter()
+            .map(|&x| x)
+            .collect(),
+    )
+    .unwrap();
+
     let result: Vec<f64> = (0..divisions)
         .into_par_iter()
         .map(|i| {
-            let x: i32 = i * width_step;
-            let roi = Rect::new(x, 0, width_step, height);
-            let cropped_mat = gray_frame.roi(roi).unwrap().try_clone().unwrap();
-            calc_haar_like(&cropped_mat, rect_height).unwrap_or(0.0)
+            let x = i as usize * width_step;
+            let cropped_array = array.slice(s![.., x..x + width_step]);
+            calc_haar_like_ndarray(&cropped_array, rect_height)
         })
         .collect();
-
     Ok(result)
 }
 
-fn calc_haar_like(frame: &Mat, rect_height: i32) -> Result<f64, opencv::Error> {
-    let rows = frame.rows();
-    let cols = frame.cols();
+fn calc_haar_like_ndarray(frame: &ArrayView2<u8>, rect_height: i32) -> f64 {
+    let (rows, _) = frame.dim();
 
-    // SIMD最適化可能な部分
-    let mut array_1d = Vec::with_capacity(rows as usize);
-
-    // OpenCVのsum関数を活用
+    let mut array_1d = vec![0.0; rows];
     for r in 0..rows {
-        let row_sum: f64 = (0..cols)
-            .map(|c| *frame.at_2d::<u8>(r, c).unwrap() as f64)
-            .sum();
-        array_1d.push(row_sum);
+        array_1d[r] = frame.row(r).iter().map(|&x| x as f64).sum();
     }
 
     let kernel = vec![1.0 / rect_height as f64; rect_height as usize];
     let convolved_array = convolve(&array_1d, &kernel);
 
-    // SIMDや並列処理が可能な部分
     let diff_array: Vec<f64> = convolved_array.windows(2).map(|w| w[1] - w[0]).collect();
 
     let max_idx = diff_array
@@ -56,7 +58,7 @@ fn calc_haar_like(frame: &Mat, rect_height: i32) -> Result<f64, opencv::Error> {
         .map(|(idx, _)| idx)
         .unwrap_or(0);
 
-    Ok(max_idx as f64 / diff_array.len() as f64)
+    max_idx as f64 / diff_array.len() as f64
 }
 
 fn convolve(array: &[f64], kernel: &[f64]) -> Vec<f64> {
@@ -70,11 +72,9 @@ fn convolve(array: &[f64], kernel: &[f64]) -> Vec<f64> {
     }
     result.push(sum);
 
-    let _: f64 = kernel.iter().sum();
     for i in kernel_size..array_len {
         sum += array[i] * kernel[0] - array[i - kernel_size] * kernel[kernel_size - 1];
         result.push(sum);
     }
-
     result
 }
