@@ -1,5 +1,4 @@
 mod camera;
-mod keyboard;
 mod streaming;
 use axum::{routing::get, Router};
 use streaming::handlers;

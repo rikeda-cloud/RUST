@@ -1,29 +1,27 @@
 use crate::camera::frame_handler;
-use crate::keyboard::KeyNum;
 use opencv::prelude::{MatTraitConst, VideoCaptureTrait, VideoCaptureTraitConst};
 use opencv::videoio::{
     VideoCapture, CAP_PROP_FRAME_HEIGHT as CAP_H, CAP_PROP_FRAME_WIDTH as CAP_W,
 };
-use opencv::{core, highgui, videoio};
+use opencv::{core, videoio};
 
 pub struct Camera {
     pub frame: core::Mat,
     capture: videoio::VideoCapture,
-    frame_handler: frame_handler::FrameHandler,
+    camera_chain: Vec<String>,
 }
 
 impl Camera {
-    pub fn new(camera_index: i32, frame_mode: &str) -> Self {
+    pub fn new(camera_index: i32) -> Self {
         let mut capture = VideoCapture::new(camera_index, videoio::CAP_ANY).expect("Error: Camera");
         capture.is_opened().expect("Error: Camera Init");
         capture.set(CAP_W, 640.0).expect("Error: Width Size");
         capture.set(CAP_H, 480.0).expect("Error: Height Size");
-        let frame_handler = frame_handler::search_frame_handler(frame_mode).expect("Error: mode");
 
         Self {
             capture,
             frame: core::Mat::default(),
-            frame_handler,
+            camera_chain: vec![],
         }
     }
 
@@ -32,54 +30,21 @@ impl Camera {
         if self.frame.empty() {
             panic!("Error: read");
         }
-        self.frame = (self.frame_handler)(&self.frame)?;
+        self.process_frame_by_camera_chain()?;
         Ok(())
     }
 
-    #[allow(dead_code)]
-    pub fn handle_key(&mut self) -> bool {
-        match highgui::wait_key(1) {
-            Ok(key) => match KeyNum::try_from(key) {
-                Ok(KeyNum::ESC) => false,
-                Ok(KeyNum::Num0) => self.switch_frame_handler("binary".to_string()),
-                Ok(KeyNum::Num1) => self.switch_frame_handler("color".to_string()),
-                Ok(KeyNum::Num2) => self.switch_frame_handler("gray".to_string()),
-                Ok(KeyNum::Num3) => self.switch_frame_handler("canny".to_string()),
-                Ok(KeyNum::Num4) => self.switch_frame_handler("white_balance".to_string()),
-                Ok(KeyNum::Num5) => self.switch_frame_handler("filter".to_string()),
-                Ok(KeyNum::Num6) => self.switch_frame_handler("superpixel".to_string()),
-                Ok(KeyNum::Num7) => self.switch_frame_handler("countours".to_string()),
-                Ok(KeyNum::Num8) => self.switch_frame_handler("fsrcnn".to_string()),
-                Ok(KeyNum::Num9) => self.switch_frame_handler("espcn".to_string()),
-                _ => true,
-            },
-            Err(_) => false,
-        }
-    }
-
-    pub fn handle_key_websocket(&mut self, c: i32) -> bool {
-        match c {
-            1 => self.switch_frame_handler("color".to_string()),
-            2 => self.switch_frame_handler("gray".to_string()),
-            3 => self.switch_frame_handler("binary".to_string()),
-            4 => self.switch_frame_handler("canny".to_string()),
-            5 => self.switch_frame_handler("countours".to_string()),
-            6 => self.switch_frame_handler("filter".to_string()),
-            7 => self.switch_frame_handler("superpixel".to_string()),
-            8 => self.switch_frame_handler("white_balance".to_string()),
-            9 => self.switch_frame_handler("haar_like".to_string()),
-            0 => self.switch_frame_handler("espcn".to_string()),
-            _ => true,
-        }
-    }
-
-    fn switch_frame_handler(&mut self, mode: String) -> bool {
-        match frame_handler::search_frame_handler(&mode) {
-            Some(frame_handler) => {
-                self.frame_handler = frame_handler;
-                true
+    fn process_frame_by_camera_chain(&mut self) -> Result<(), opencv::Error> {
+        for chain in self.camera_chain.iter() {
+            match frame_handler::search_frame_handler(&chain) {
+                Some(frame_handler) => self.frame = frame_handler(&self.frame)?,
+                None => {}
             }
-            None => true,
         }
+        Ok(())
+    }
+
+    pub fn update_camera_chain(&mut self, new_camera_chain: Vec<String>) {
+        self.camera_chain = new_camera_chain;
     }
 }

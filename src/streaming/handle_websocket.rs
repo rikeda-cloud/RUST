@@ -39,10 +39,8 @@ pub async fn recv_key_event(
                 if let Ok(connections_data) = serde_json::from_str::<Connections>(&text) {
                     let camera_chain: Vec<String> =
                         convert_connections_to_chain(connections_data.nodes);
-                    // let selected_number: i32 = select_event.number;
-                    // let mut camera = camera.lock().await;
-                    // camera.handle_key_websocket(selected_number);
-                    println!("{:?}", camera_chain);
+                    let mut camera = camera.lock().await;
+                    camera.update_camera_chain(camera_chain.clone());
                 }
             }
             ws::Message::Binary(_) => {}
