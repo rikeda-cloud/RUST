@@ -1,4 +1,5 @@
 use crate::camera::camera::Camera;
+use crate::streaming::connections::{convert_connections_to_chain, Connections};
 use axum::extract::ws;
 use futures::StreamExt;
 use futures_util::SinkExt;
@@ -6,11 +7,6 @@ use opencv::prelude::VectorToVec;
 use opencv::{core, imgcodecs};
 use std::sync::Arc;
 use tokio::sync::Mutex;
-
-#[derive(serde::Deserialize)]
-struct NumberSelectEvent {
-    number: i32,
-}
 
 pub async fn send_camera_frame(
     mut send_socket: futures::stream::SplitSink<ws::WebSocket, ws::Message>,
@@ -40,10 +36,13 @@ pub async fn recv_key_event(
     while let Some(Ok(msg)) = recv_socket.next().await {
         match msg {
             ws::Message::Text(text) => {
-                if let Ok(select_event) = serde_json::from_str::<NumberSelectEvent>(&text) {
-                    let selected_number: i32 = select_event.number;
-                    let mut camera = camera.lock().await;
-                    camera.handle_key_websocket(selected_number);
+                if let Ok(connections_data) = serde_json::from_str::<Connections>(&text) {
+                    let camera_chain: Vec<String> =
+                        convert_connections_to_chain(connections_data.nodes);
+                    // let selected_number: i32 = select_event.number;
+                    // let mut camera = camera.lock().await;
+                    // camera.handle_key_websocket(selected_number);
+                    println!("{:?}", camera_chain);
                 }
             }
             ws::Message::Binary(_) => {}
