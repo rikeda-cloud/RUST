@@ -1,9 +1,6 @@
-use crate::camera::frame_handler;
-use crate::camera::utils;
-use ndarray::prelude::*;
-use ndarray::{Array2, ArrayView2};
-use opencv::core::Mat;
-use opencv::prelude::*;
+use crate::camera::{frame_handler, utils};
+use ndarray::{prelude::*, Array2, ArrayView2};
+use opencv::{core::Mat, prelude::*};
 use rayon::prelude::*;
 use std::cmp::Ordering;
 

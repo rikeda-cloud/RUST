@@ -39,7 +39,7 @@ pub async fn recv_key_event(
                     let camera_chain: Vec<String> =
                         convert_connections_to_process_chain(connections_data.nodes);
                     let mut camera = camera.lock().await;
-                    camera.update_camera_chain(camera_chain.clone());
+                    camera.set_process_chain(camera_chain.clone());
                 }
             }
             Message::Binary(_) => {}

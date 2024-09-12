@@ -3,12 +3,12 @@ use opencv::prelude::{MatTraitConst, VideoCaptureTrait, VideoCaptureTraitConst};
 use opencv::videoio::{
     VideoCapture, CAP_PROP_FRAME_HEIGHT as CAP_H, CAP_PROP_FRAME_WIDTH as CAP_W,
 };
-use opencv::{core, videoio};
+use opencv::{core::Mat, videoio};
 
 pub struct Camera {
-    pub frame: core::Mat,
+    pub frame: Mat,
     capture: videoio::VideoCapture,
-    camera_chain: Vec<String>,
+    process_chain: Vec<String>,
 }
 
 impl Camera {
@@ -20,8 +20,8 @@ impl Camera {
 
         Self {
             capture,
-            frame: core::Mat::default(),
-            camera_chain: vec![],
+            frame: Mat::default(),
+            process_chain: vec![],
         }
     }
 
@@ -30,13 +30,13 @@ impl Camera {
         if self.frame.empty() {
             panic!("Error: read");
         }
-        self.process_frame_by_camera_chain()?;
+        self.process_frame_by_process_chain()?;
         Ok(())
     }
 
-    fn process_frame_by_camera_chain(&mut self) -> Result<(), opencv::Error> {
-        for chain in self.camera_chain.iter() {
-            match frame_handler::search_frame_handler(&chain) {
+    fn process_frame_by_process_chain(&mut self) -> Result<(), opencv::Error> {
+        for process in self.process_chain.iter() {
+            match frame_handler::search_frame_handler(&process) {
                 Some(frame_handler) => self.frame = frame_handler(&self.frame)?,
                 None => {}
             }
@@ -44,7 +44,7 @@ impl Camera {
         Ok(())
     }
 
-    pub fn update_camera_chain(&mut self, new_camera_chain: Vec<String>) {
-        self.camera_chain = new_camera_chain;
+    pub fn set_process_chain(&mut self, new_process_chain: Vec<String>) {
+        self.process_chain = new_process_chain;
     }
 }

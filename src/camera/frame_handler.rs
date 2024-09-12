@@ -1,6 +1,4 @@
-use crate::camera::haar_like;
-use crate::camera::text;
-use crate::camera::utils;
+use crate::camera::{haar_like, text, utils};
 use opencv::core::{flip, Mat, Point, Rect, Scalar, Size, Vector, BORDER_DEFAULT};
 use opencv::objdetect::CascadeClassifier;
 use opencv::{dnn_superres, imgproc, prelude::*, ximgproc, xphoto};
