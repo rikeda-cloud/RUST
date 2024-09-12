@@ -11,6 +11,7 @@ var node_details = [
 	"removed_green",
 	"removed_blue",
 	"text",
+	"gray",
 ];
 var camera = "camera";
 
@@ -50,9 +51,10 @@ function main(container) {
 		var _ = graph.insertVertex(parent, null, camera, 500, 100, 100, 50, 'rounded=1;fillColor=#FF6666;fontColor=#FFFFFF');
 
 		var nodes = [];
-		for (var i = 0; i < 10; i++) {
-			var row = Math.floor(i / 2);
-			var col = i % 2;
+		var cols = 3;
+		for (var i = 0; i < node_details.length; i++) {
+			var row = Math.floor(i / cols);
+			var col = i % cols;
 			var nodeXPosition = 50 + col * 100;
 			var nodeYPosition = 30 + row * 40;
 			var node = graph.insertVertex(parent, null, node_details[i], nodeXPosition, nodeYPosition, 80, 30, 'rounded=1;fillColor=#66CCFF;fontColor=#000000');
