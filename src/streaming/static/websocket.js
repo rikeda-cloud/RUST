@@ -12,6 +12,7 @@ var node_details = [
 	"removed_blue",
 	"text",
 	"gray",
+	"reverse",
 ];
 var camera = "camera";
 

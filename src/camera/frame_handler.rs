@@ -1,7 +1,7 @@
 use crate::camera::haar_like;
 use crate::camera::text;
 use crate::camera::utils;
-use opencv::core::{Mat, Point, Rect, Scalar, Size, Vector, BORDER_DEFAULT};
+use opencv::core::{flip, Mat, Point, Rect, Scalar, Size, Vector, BORDER_DEFAULT};
 use opencv::objdetect::CascadeClassifier;
 use opencv::{dnn_superres, imgproc, prelude::*, ximgproc, xphoto};
 use std::collections::HashMap;
@@ -31,6 +31,7 @@ fn create_frame_handler_map() -> HashMap<&'static str, FrameHandler> {
     frame_handler_map.insert("removed_green", convert_to_removed_green);
     frame_handler_map.insert("text", convert_to_text_frame);
     frame_handler_map.insert("face", convert_to_detect_faces);
+    frame_handler_map.insert("reverse", convert_to_reverse);
     frame_handler_map
 }
 
@@ -296,4 +297,10 @@ fn convert_to_detect_faces(frame: &Mat) -> Result<Mat, opencv::Error> {
     }
 
     Ok(output_frame)
+}
+
+fn convert_to_reverse(frame: &Mat) -> Result<Mat, opencv::Error> {
+    let mut reversed_frame = Mat::default();
+    let _ = flip(&frame, &mut reversed_frame, 1);
+    Ok(reversed_frame)
 }
