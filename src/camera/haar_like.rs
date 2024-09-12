@@ -1,4 +1,5 @@
 use crate::camera::frame_handler;
+use crate::camera::utils;
 use ndarray::prelude::*;
 use ndarray::{Array2, ArrayView2};
 use opencv::core::Mat;
@@ -11,7 +12,10 @@ pub fn calc_haar_like_vec(
     divisions: i32,
     rect_height: i32,
 ) -> Result<Vec<f64>, opencv::Error> {
-    let gray_frame = frame_handler::convert_to_gray(&frame)?;
+    let gray_frame = match utils::is_grayscale(frame)? {
+        true => frame.clone(),
+        false => frame_handler::convert_to_gray(&frame)?,
+    };
     let width = gray_frame.cols() as usize;
     let height = gray_frame.rows() as usize;
     let width_step = width / divisions as usize;

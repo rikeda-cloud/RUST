@@ -1,4 +1,5 @@
 use crate::camera::haar_like;
+use crate::camera::utils;
 use opencv::core::{Mat, Point, Rect, Scalar, Vector, BORDER_DEFAULT};
 use opencv::{dnn_superres, imgproc, prelude::*, ximgproc, xphoto};
 use std::collections::HashMap;
@@ -28,6 +29,9 @@ fn create_frame_handler_map() -> HashMap<&'static str, FrameHandler> {
 
 // グレースケール
 pub fn convert_to_gray(frame: &Mat) -> Result<Mat, opencv::Error> {
+    if utils::is_grayscale(frame)? {
+        return Ok(frame.clone());
+    }
     let mut gray_frame = Mat::default();
     imgproc::cvt_color(frame, &mut gray_frame, imgproc::COLOR_BGR2GRAY, 0)?;
     Ok(gray_frame)
@@ -38,13 +42,15 @@ pub fn convert_to_canny(frame: &Mat) -> Result<Mat, opencv::Error> {
     // THRESHOLD1 <= エッジとして判定 <= THRESHOLD2
     const THRESHOLD1: f64 = 100.0;
     const THRESHOLD2: f64 = 200.0;
-    // エッジ検出に使用されるソーベル演算子のサイズ
-    // (3, 5, 7) のいずれかの値が有効
+    // エッジ検出時のソーベル演算子のサイズ(3, 5, 7)
     const APERTURE_SIZE: i32 = 3;
-    // TRUE -> (L2ノルムを使用, 精度向上 & 計算コスト増)
-    // FALSE -> (L1ノルムが使用)
+    // TRUE -> L2ノルム, FALSE -> L1ノルム
     const L2_GRADIENT: bool = false;
-    let mut canny_frame = convert_to_gray(frame)?;
+
+    let mut canny_frame = match utils::is_grayscale(frame)? {
+        true => frame.clone(),
+        false => convert_to_gray(frame)?,
+    };
 
     imgproc::canny(
         &frame,
@@ -64,6 +70,10 @@ pub fn convert_to_color(frame: &Mat) -> Result<Mat, opencv::Error> {
 
 // 色調補正(白をより現実の色に変える)
 pub fn convert_to_white_balance(frame: &Mat) -> Result<Mat, opencv::Error> {
+    if utils::is_grayscale(frame)? {
+        return Ok(frame.clone());
+    }
+
     let mut white_balance_frame = Mat::default();
     let mut grayworld_wb = xphoto::create_grayworld_wb()?;
     grayworld_wb.balance_white(&frame, &mut white_balance_frame)?;
@@ -72,6 +82,10 @@ pub fn convert_to_white_balance(frame: &Mat) -> Result<Mat, opencv::Error> {
 
 // ぼかし(ノイズ除去。エッジ検出と併用可能)
 pub fn convert_to_bilateral_filter(frame: &Mat) -> Result<Mat, opencv::Error> {
+    if utils::is_grayscale(frame)? {
+        return Ok(frame.clone());
+    }
+
     let mut filtered_frame = Mat::default();
     imgproc::bilateral_filter(
         &frame,
@@ -86,6 +100,10 @@ pub fn convert_to_bilateral_filter(frame: &Mat) -> Result<Mat, opencv::Error> {
 
 // スーパーピクセル
 pub fn convert_to_superpixel(frame: &Mat) -> Result<Mat, opencv::Error> {
+    if utils::is_grayscale(frame)? {
+        return Ok(frame.clone());
+    }
+
     let mut superpixeld_frame = Mat::default();
     let mut slic = ximgproc::create_superpixel_slic(frame, ximgproc::SLIC, 25, 100.0)?;
     slic.iterate(5)?;
@@ -96,6 +114,10 @@ pub fn convert_to_superpixel(frame: &Mat) -> Result<Mat, opencv::Error> {
 
 // 輪郭
 pub fn convert_to_countours(frame: &Mat) -> Result<Mat, opencv::Error> {
+    if utils::is_grayscale(frame)? {
+        return Ok(frame.clone());
+    }
+
     let mut result = frame.clone();
     let mut contours = Vector::<Vector<Point>>::new();
     let edges = convert_to_canny(frame)?;
@@ -123,6 +145,10 @@ pub fn convert_to_countours(frame: &Mat) -> Result<Mat, opencv::Error> {
 
 // 超解像処理(FSRCNN)
 pub fn convert_to_fsrcnn(frame: &Mat) -> Result<Mat, opencv::Error> {
+    if utils::is_grayscale(frame)? {
+        return Ok(frame.clone());
+    }
+
     let mut result = Mat::default();
     let mut sr = dnn_superres::DnnSuperResImpl::create()?;
     sr.read_model("model/fsrcnn.pb")?;
@@ -134,6 +160,10 @@ pub fn convert_to_fsrcnn(frame: &Mat) -> Result<Mat, opencv::Error> {
 
 // 超解像処理(ESPCN)
 pub fn convert_to_espcn(frame: &Mat) -> Result<Mat, opencv::Error> {
+    if utils::is_grayscale(frame)? {
+        return Ok(frame.clone());
+    }
+
     let mut result = Mat::default();
     let mut sr = dnn_superres::DnnSuperResImpl::create()?;
     sr.read_model("model/espcn.pb")?;
