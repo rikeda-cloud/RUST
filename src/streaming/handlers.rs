@@ -18,7 +18,7 @@ pub async fn static_content_handler(Path(file): Path<String>) -> impl IntoRespon
         "" => include_str!("static/index.html"),
         "index.html" => include_str!("static/index.html"),
         "websocket.js" => include_str!("static/websocket.js"),
-        "streaming.css" => include_str!("static/streaming.css"),
+        "style.css" => include_str!("static/style.css"),
     };
     match HTML_DATA_MAP.get(file.as_str()) {
         Some(data) => generate_text_response(data),
