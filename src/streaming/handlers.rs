@@ -1,4 +1,5 @@
 use crate::camera::camera::Camera;
+use crate::camera::utils;
 use crate::streaming::generate_response::*;
 use crate::streaming::handle_websocket::*;
 use axum::extract::{ws, Path};
@@ -27,8 +28,8 @@ pub async fn static_content_handler(Path(file): Path<String>) -> impl IntoRespon
 
 pub async fn websocket_handler(ws: ws::WebSocketUpgrade) -> impl IntoResponse {
     ws.on_upgrade(|socket| {
-        const CAMERA_NUMBER: i32 = 14;
-        let camera = Arc::new(Mutex::new(Camera::new(CAMERA_NUMBER)));
+        let camera_number: i32 = utils::get_dev_number();
+        let camera = Arc::new(Mutex::new(Camera::new(camera_number)));
         let (send_socket, recv_socket) = socket.split();
 
         let camera_for_recv = Arc::clone(&camera);
