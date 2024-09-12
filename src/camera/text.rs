@@ -1,8 +1,9 @@
+use opencv::core::{Mat, Rect, Vector};
 use opencv::prelude::BaseOCRTrait;
-use opencv::{core, text};
+use opencv::text;
 
 #[allow(dead_code)]
-pub fn extract_text(frame: &core::Mat) -> Result<String, opencv::Error> {
+pub fn extract_text(frame: &Mat) -> Result<String, opencv::Error> {
     let mut ocr = text::OCRTesseract::create(
         "/usr/share/tesseract/tessdata/", // システム内のtessdataディレクトリのパス
         "eng",                            // 使用する言語
@@ -11,9 +12,9 @@ pub fn extract_text(frame: &core::Mat) -> Result<String, opencv::Error> {
         10,                               // ページセグメンテーションモード(PSM)
     )?;
     let mut output_text = String::new();
-    let mut component_rects = core::Vector::<core::Rect>::new();
-    let mut component_texts = core::Vector::<String>::new();
-    let mut confidences = core::Vector::<f32>::new();
+    let mut component_rects = Vector::<Rect>::new();
+    let mut component_texts = Vector::<String>::new();
+    let mut confidences = Vector::<f32>::new();
     let mut copy_frame = frame.clone();
 
     // 文字を認識

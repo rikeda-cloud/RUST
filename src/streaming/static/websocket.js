@@ -10,7 +10,7 @@ var node_details = [
 	"removed_red",
 	"removed_green",
 	"removed_blue",
-	"espcn",
+	"text",
 ];
 var camera = "camera";
 

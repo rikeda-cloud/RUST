@@ -1,4 +1,5 @@
 use crate::camera::haar_like;
+use crate::camera::text;
 use crate::camera::utils;
 use opencv::core::{Mat, Point, Rect, Scalar, Vector, BORDER_DEFAULT};
 use opencv::{dnn_superres, imgproc, prelude::*, ximgproc, xphoto};
@@ -27,6 +28,7 @@ fn create_frame_handler_map() -> HashMap<&'static str, FrameHandler> {
     frame_handler_map.insert("removed_red", convert_to_removed_red);
     frame_handler_map.insert("removed_blue", convert_to_removed_blue);
     frame_handler_map.insert("removed_green", convert_to_removed_green);
+    frame_handler_map.insert("text", convert_to_text_frame);
     frame_handler_map
 }
 
@@ -231,4 +233,33 @@ fn convert_to_removed_green(frame: &Mat) -> Result<Mat, opencv::Error> {
         return Ok(frame.clone());
     }
     utils::remove_color_channel(frame, 1)
+}
+
+fn convert_to_text_frame(frame: &Mat) -> Result<Mat, opencv::Error> {
+    let text: String = text::extract_text(frame)?;
+    let mut result: Mat = frame.clone();
+
+    let font_face = imgproc::FONT_HERSHEY_SIMPLEX;
+    let font_scale = 1.0;
+    let thickness = 2;
+    let black = Scalar::new(0.0, 0.0, 0.0, 0.0);
+
+    let text_size = imgproc::get_text_size(&text, font_face, font_scale, thickness, &mut 0)?;
+    let text_org = Point::new(
+        (frame.cols() - text_size.width) / 2,
+        (frame.rows() + text_size.height) / 2,
+    );
+
+    imgproc::put_text(
+        &mut result,
+        &text,
+        text_org,
+        font_face,
+        font_scale,
+        black,
+        thickness,
+        imgproc::LINE_AA,
+        false,
+    )?;
+    Ok(result)
 }
