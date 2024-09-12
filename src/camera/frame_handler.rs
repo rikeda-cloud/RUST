@@ -24,6 +24,9 @@ fn create_frame_handler_map() -> HashMap<&'static str, FrameHandler> {
     frame_handler_map.insert("espcn", convert_to_espcn);
     frame_handler_map.insert("binary", convert_to_binary);
     frame_handler_map.insert("haar_like", convert_to_haar_like);
+    frame_handler_map.insert("removed_red", convert_to_removed_red);
+    frame_handler_map.insert("removed_blue", convert_to_removed_blue);
+    frame_handler_map.insert("removed_green", convert_to_removed_green);
     frame_handler_map
 }
 
@@ -207,4 +210,25 @@ pub fn convert_to_haar_like(frame: &Mat) -> Result<Mat, opencv::Error> {
         let _ = imgproc::rectangle(&mut haar_like_frame, rect, BLACK, 1, imgproc::LINE_8, 0);
     }
     Ok(haar_like_frame)
+}
+
+fn convert_to_removed_red(frame: &Mat) -> Result<Mat, opencv::Error> {
+    if utils::is_grayscale(frame)? {
+        return Ok(frame.clone());
+    }
+    utils::remove_color_channel(frame, 2)
+}
+
+fn convert_to_removed_blue(frame: &Mat) -> Result<Mat, opencv::Error> {
+    if utils::is_grayscale(frame)? {
+        return Ok(frame.clone());
+    }
+    utils::remove_color_channel(frame, 0)
+}
+
+fn convert_to_removed_green(frame: &Mat) -> Result<Mat, opencv::Error> {
+    if utils::is_grayscale(frame)? {
+        return Ok(frame.clone());
+    }
+    utils::remove_color_channel(frame, 1)
 }

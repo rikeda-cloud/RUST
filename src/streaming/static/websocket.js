@@ -1,6 +1,17 @@
 var graph;
 var ws;
-var node_details = ["canny", "binary", "gray", "white_balance", "filter", "superpixel", "countours", "haar_like", "espcn", "color"];
+var node_details = [
+	"canny",
+	"binary",
+	"gray",
+	"white_balance",
+	"superpixel",
+	"haar_like",
+	"removed_red",
+	"removed_green",
+	"removed_blue",
+	"espcn",
+];
 var camera = "camera";
 
 function initializeWebSocket() {
