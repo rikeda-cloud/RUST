@@ -23,7 +23,6 @@ function initializeWebSocket() {
 	ws.onopen = function() { console.log('WebSocket connection opened'); };
 	ws.onclose = function() { console.log('WebSocket connection closed'); };
 	ws.onerror = function(error) { console.error('WebSocket error: ', error); };
-
 	ws.onmessage = function(event) {
 		var img = document.getElementById('stream');
 		img.src = URL.createObjectURL(new Blob([event.data], { type: 'image/jpeg' }));
@@ -49,7 +48,16 @@ function main(container) {
 
 	graph.getModel().beginUpdate();
 	try {
-		var _ = graph.insertVertex(parent, null, camera, 500, 100, 100, 50, 'rounded=1;fillColor=#FF6666;fontColor=#FFFFFF');
+		graph.insertVertex(
+			parent,
+			null,
+			camera,
+			500,
+			100,
+			100,
+			50,
+			'rounded=1;fillColor=#FF6666;fontColor=#FFFFFF'
+		);
 
 		var nodes = [];
 		var cols = 3;
@@ -71,7 +79,7 @@ function main(container) {
 	graph.isValidTarget = function(_) { return true; };
 
 	// 1対1の接続制限ロジック（カメラ以外のノードは1つの入力と1つの出力を持てる）
-	graph.addEdge = function(edge, parent, source, target, index) {
+	graph.addEdge = function(_, _, source, target, _) {
 		var sourceEdges = graph.getModel().getOutgoingEdges(source);
 		var targetEdges = graph.getModel().getIncomingEdges(target);
 
@@ -81,7 +89,7 @@ function main(container) {
 	};
 
 	// エッジが追加された後にノード情報を送信
-	graph.addListener(mxEvent.ADD_CELLS, function(sender, evt) {
+	graph.addListener(mxEvent.ADD_CELLS, function(_, evt) {
 		var cells = evt.getProperty('cells');
 		cells.forEach(function(cell) {
 			if (cell.edge) {
