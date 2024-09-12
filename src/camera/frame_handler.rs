@@ -1,6 +1,5 @@
 use crate::camera::{haar_like, text, utils};
-use opencv::core::{flip, Mat, Point, Rect, Scalar, Size, Vector, BORDER_DEFAULT};
-use opencv::objdetect::CascadeClassifier;
+use opencv::core::{flip, Mat, Point, Rect, Scalar, Vector, BORDER_DEFAULT};
 use opencv::{dnn_superres, imgproc, prelude::*, ximgproc, xphoto};
 use std::collections::HashMap;
 
@@ -29,6 +28,7 @@ fn create_frame_handler_map() -> HashMap<&'static str, FrameHandler> {
     frame_handler_map.insert("removed_green", convert_to_removed_green);
     frame_handler_map.insert("text", convert_to_text_frame);
     frame_handler_map.insert("face", convert_to_detect_faces);
+    frame_handler_map.insert("eye", convert_to_detect_eye);
     frame_handler_map.insert("reverse", convert_to_reverse);
     frame_handler_map
 }
@@ -266,35 +266,15 @@ fn convert_to_text_frame(frame: &Mat) -> Result<Mat, opencv::Error> {
 }
 
 fn convert_to_detect_faces(frame: &Mat) -> Result<Mat, opencv::Error> {
-    let mut face_cascade = CascadeClassifier::new("model/haarcascade_frontalface_default.xml")?;
-    let gray_frame = convert_to_gray(&frame)?;
+    const FACE_MODEL_PATH: &str = "model/haarcascade_frontalface_default.xml";
+    let rect_green = Scalar::new(0.0, 255.0, 0.0, 0.0);
+    utils::detect_object(&frame, FACE_MODEL_PATH, rect_green)
+}
 
-    // 顔を検出する
-    let mut faces = Vector::<Rect>::new();
-    face_cascade.detect_multi_scale(
-        &gray_frame,
-        &mut faces,
-        1.1,
-        3,
-        0,
-        Size::new(30, 30),
-        Size::new(0, 0),
-    )?;
-
-    // 検出された顔の周りに矩形を描画
-    let mut output_frame = frame.clone();
-    for face in faces {
-        imgproc::rectangle(
-            &mut output_frame,
-            face,
-            Scalar::new(0.0, 255.0, 0.0, 0.0),
-            2,
-            imgproc::LINE_8,
-            0,
-        )?;
-    }
-
-    Ok(output_frame)
+fn convert_to_detect_eye(frame: &Mat) -> Result<Mat, opencv::Error> {
+    const EYE_MODEL_PATH: &str = "model/haarcascade_eye.xml";
+    let rect_red = Scalar::new(255.0, 0.0, 0.0, 0.0);
+    utils::detect_object(&frame, EYE_MODEL_PATH, rect_red)
 }
 
 fn convert_to_reverse(frame: &Mat) -> Result<Mat, opencv::Error> {

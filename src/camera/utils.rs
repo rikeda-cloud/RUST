@@ -1,4 +1,7 @@
-use opencv::core::{merge, no_array, prelude::*, split, Mat, Scalar, Vector};
+use crate::camera::frame_handler;
+use opencv::core::{merge, no_array, prelude::*, split, Mat, Rect, Scalar, Size, Vector};
+use opencv::objdetect::CascadeClassifier;
+use opencv::{imgproc, prelude::*};
 
 pub fn is_grayscale(frame: &Mat) -> Result<bool, opencv::Error> {
     Ok(frame.channels() == 1)
@@ -32,4 +35,36 @@ pub fn remove_color_channel(frame: &Mat, channel_to_remove: usize) -> Result<Mat
     let mut result = Mat::default();
     merge(&channels, &mut result)?;
     Ok(result)
+}
+
+pub fn detect_object(frame: &Mat, model: &str, ract_color: Scalar) -> Result<Mat, opencv::Error> {
+    let mut cascade = CascadeClassifier::new(model)?;
+    let gray_frame = frame_handler::convert_to_gray(&frame)?;
+
+    // 物体を検出する
+    let mut objects = Vector::<Rect>::new();
+    cascade.detect_multi_scale(
+        &gray_frame,
+        &mut objects,
+        1.1,
+        2,
+        opencv::objdetect::CASCADE_FIND_BIGGEST_OBJECT,
+        Size::new(100, 100),
+        Size::new(0, 0),
+    )?;
+
+    // 検出された物体の周りに矩形を描画
+    let mut detected_frame = frame.clone();
+    for object in objects {
+        imgproc::rectangle(
+            &mut detected_frame,
+            object,
+            ract_color,
+            2,
+            imgproc::LINE_8,
+            0,
+        )?;
+    }
+
+    Ok(detected_frame)
 }

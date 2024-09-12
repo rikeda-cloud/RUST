@@ -13,6 +13,7 @@ var node_details = [
 	"text",
 	"gray",
 	"reverse",
+	"eye",
 ];
 var camera = "camera";
 
