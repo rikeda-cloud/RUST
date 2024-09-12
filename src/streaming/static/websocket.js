@@ -3,7 +3,7 @@ var ws;
 var node_details = [
 	"canny",
 	"binary",
-	"gray",
+	"face",
 	"white_balance",
 	"superpixel",
 	"haar_like",
