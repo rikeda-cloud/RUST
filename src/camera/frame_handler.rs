@@ -106,10 +106,6 @@ pub fn convert_to_bilateral_filter(frame: &Mat) -> Result<Mat, opencv::Error> {
 
 // スーパーピクセル
 pub fn convert_to_superpixel(frame: &Mat) -> Result<Mat, opencv::Error> {
-    if utils::is_grayscale(frame)? {
-        return Ok(frame.clone());
-    }
-
     let mut superpixeld_frame = Mat::default();
     let mut slic = ximgproc::create_superpixel_slic(frame, ximgproc::SLIC, 25, 100.0)?;
     slic.iterate(5)?;
