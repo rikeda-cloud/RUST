@@ -33,11 +33,11 @@ pub async fn websocket_handler(ws: ws::WebSocketUpgrade) -> impl IntoResponse {
         let (send_socket, recv_socket) = socket.split();
 
         let camera_for_recv = Arc::clone(&camera);
+        let camera_for_send = Arc::clone(&camera);
+
         tokio::spawn(async move {
             recv_key_event(recv_socket, camera_for_recv).await;
         });
-
-        let camera_for_send = Arc::clone(&camera);
         tokio::spawn(async move {
             send_camera_frame(send_socket, camera_for_send).await;
         });

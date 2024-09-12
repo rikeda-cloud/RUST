@@ -1,6 +1,4 @@
-use axum::body::Body;
-use axum::http::StatusCode;
-use axum::response::Response;
+use axum::{body::Body, http::StatusCode, response::Response};
 
 pub fn generate_not_found_response(error_message: &'static str) -> Response<Body> {
     Response::builder()
