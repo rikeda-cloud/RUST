@@ -1,16 +1,36 @@
-# RUST
-## 使い方
-1. `cargo new PROJECT_NAME` RUSTプロジェクトを作成<br>(`cargo new PROJECT_NAME --lib` ライブラリを作成するプロジェクトを作成)
-2. `git init && git add * && git commit -m "[init]"` 最初のコミットを作成
-3. `git remote add origin gitのリポジトリURL && git push -u origin master` リポジトリの初期化
-4. `cd PROJECT_NAME && cargo run` プロジェクトを開始
-5. `cargo check` コンパイルの確認
-6. `cargo build` ビルドのみ実行(`cargo build --release` 最適化を行いビルドする)
-7. `cargo run` ビルドと実行
-8. `cargo test` 記述されたテストの実行
-9. `rustc *.rs` コンパイルする
+# WebCameraStreamingServer
 
-## 命名規則(RUSTは言語レベルで命名規則が指定されている)
-1. 定数名はアッパースネークケース
-2. 型名はアッパーキャメルケース
-3. 変数名やプリミティブ型、フィールド識別子(構造体内のメンバ変数名)はスネークケース
+## 使い方
+1. 必要なパッケージのインストールや環境変数の設定を行う
+```
+// Debian系の場合
+RUN apt-get update && apt-get install -y \
+	llvm-dev \
+	clang \
+	libclang-dev \
+	libopencv-dev \
+	pkg-config
+
+export PKG_CONFIG_PATH=/usr/lib/pkgconfig   // 環境に合わせて設定
+export LIBCLANG_PATH=/usr/lib/llvm-14/lib/  // 環境に合わせて設定
+export DEV_NUMBER=14                        // Webカメラのデバイスナンバーを設定。この環境変数が無い場合は0を使用
+```
+2. リポジトリのclone && プロジェクトのルートへ移動
+3. build (`cargo build --release`)
+4. バイナリファイルの実行 (`./target/release/frame`)
+5. GUIで画像処理のノード間をつなぎ、カメラまでつなぐとストリーミング映像に画像処理が適応される(画像処理のチェーンは複数つなぐことが可能)
+
+## 使用可能な画像処理機能
+* `canny` -> canny法を用いたエッジ検出
+* `binary` -> 画像を二値化
+* `face` -> 画像から顔を検出し、枠で囲む
+* `white_balance` -> 光の色合いを補正
+* `superpixel` -> 画像セグメンテーション
+* `haar_like` -> 画像の白黒差が最も激しい箇所を抽出
+* `removed_red` -> 画像のREDチャネルを0に変換
+* `removed_green` -> 画像のGREENチャネルを0に変換
+* `removed_BLUE` -> 画像のBLUEチャネルを0に変換
+* `text` -> 画像に写る文字列を検出
+* `gray` -> grayscaleに変換
+* `reverse` -> 画像の左右を反転
+* `eye` -> 画像から目を検出し、枠で囲む
