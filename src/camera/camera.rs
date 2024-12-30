@@ -4,6 +4,7 @@ use opencv::videoio::{
     VideoCapture, CAP_PROP_FRAME_HEIGHT as CAP_H, CAP_PROP_FRAME_WIDTH as CAP_W,
 };
 use opencv::{core::Mat, videoio};
+use std::time::Instant;
 
 pub struct Camera {
     pub frame: Mat,
@@ -27,10 +28,13 @@ impl Camera {
 
     pub fn capture_frame(&mut self) -> Result<(), opencv::Error> {
         self.capture.read(&mut self.frame).expect("Error: read");
+        let start = Instant::now();
         if self.frame.empty() {
             panic!("Error: read");
         }
         self.process_frame_by_process_chain()?;
+        let end = start.elapsed();
+        println!("{}.{:03}", end.as_secs(), end.subsec_nanos() / 1_000_000);
         Ok(())
     }
 

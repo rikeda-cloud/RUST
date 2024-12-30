@@ -14,6 +14,8 @@ var node_details = [
 	"gray",
 	"reverse",
 	"eye",
+	"hough",
+	"sobel",
 ];
 var camera = "camera";
 
@@ -21,12 +23,12 @@ function initializeWebSocket() {
 	ws = new WebSocket('ws://' + window.location.host + '/ws');
 	ws.binaryType = 'arraybuffer';
 
-	ws.onopen = function() { console.log('WebSocket connection opened'); };
-	ws.onclose = function() { console.log('WebSocket connection closed'); };
-	ws.onerror = function(error) { console.error('WebSocket error: ', error); };
-	ws.onmessage = function(event) {
+	ws.onopen = function () {console.log('WebSocket connection opened');};
+	ws.onclose = function () {console.log('WebSocket connection closed');};
+	ws.onerror = function (error) {console.error('WebSocket error: ', error);};
+	ws.onmessage = function (event) {
 		var img = document.getElementById('stream');
-		img.src = URL.createObjectURL(new Blob([event.data], { type: 'image/jpeg' }));
+		img.src = URL.createObjectURL(new Blob([event.data], {type: 'image/jpeg'}));
 	};
 }
 
@@ -39,7 +41,7 @@ function sendNodeConnections() {
 			source: cell.source ? cell.source.value : null,
 			target: cell.target ? cell.target.value : null
 		}));
-	ws.send(JSON.stringify({ nodes: connections }));
+	ws.send(JSON.stringify({nodes: connections}));
 }
 
 function main(container) {
@@ -76,37 +78,37 @@ function main(container) {
 
 	graph.setConnectable(true);
 	graph.setAllowDanglingEdges(false);
-	graph.isValidSource = function(cell) { return cell.value !== camera; };
-	graph.isValidTarget = function(_) { return true; };
+	graph.isValidSource = function (cell) {return cell.value !== camera;};
+	graph.isValidTarget = function (_) {return true;};
 
 	// 1対1の接続制限ロジック（カメラ以外のノードは1つの入力と1つの出力を持てる）
-	graph.addEdge = function(_, _, source, target, _) {
+	graph.addEdge = function (_, _, source, target, _) {
 		var sourceEdges = graph.getModel().getOutgoingEdges(source);
 		var targetEdges = graph.getModel().getIncomingEdges(target);
 
-		if (source.value === camera) { return null; }
-		if (sourceEdges.length > 0 || targetEdges.length > 0) { return null; }
+		if (source.value === camera) {return null;}
+		if (sourceEdges.length > 0 || targetEdges.length > 0) {return null;}
 		return mxGraph.prototype.addEdge.apply(this, arguments);
 	};
 
 	// エッジが追加された後にノード情報を送信
-	graph.addListener(mxEvent.ADD_CELLS, function(_, evt) {
+	graph.addListener(mxEvent.ADD_CELLS, function (_, evt) {
 		var cells = evt.getProperty('cells');
-		cells.forEach(function(cell) {
+		cells.forEach(function (cell) {
 			if (cell.edge) {
 				sendNodeConnections();
 			}
 		});
 	});
 
-	document.addEventListener('keydown', function(event) {
+	document.addEventListener('keydown', function (event) {
 		if (event.ctrlKey && event.key === 'x') {
 			var selectedCells = graph.getSelectionCells();
 			graph.getModel().beginUpdate();
 			try {
 				for (var i = 0; i < selectedCells.length; i++) {
 					var cell = selectedCells[i];
-					if (cell.edge) { graph.removeCells([cell]); }
+					if (cell.edge) {graph.removeCells([cell]);}
 				}
 				sendNodeConnections();
 			} finally {

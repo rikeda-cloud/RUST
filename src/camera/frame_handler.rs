@@ -1,5 +1,5 @@
 use crate::camera::{haar_like, text, utils};
-use opencv::core::{flip, Mat, Point, Rect, Scalar, Vector, BORDER_DEFAULT};
+use opencv::core::{flip, Mat, Point, Rect, Scalar, Vector, BORDER_DEFAULT, Vec4i};
 use opencv::{dnn_superres, imgproc, prelude::*, ximgproc, xphoto};
 use std::collections::HashMap;
 
@@ -30,6 +30,9 @@ fn create_frame_handler_map() -> HashMap<&'static str, FrameHandler> {
     frame_handler_map.insert("face", convert_to_detect_faces);
     frame_handler_map.insert("eye", convert_to_detect_eye);
     frame_handler_map.insert("reverse", convert_to_reverse);
+    frame_handler_map.insert("hough", convert_to_hough);
+    frame_handler_map.insert("sobel", convert_to_sobel);
+
     frame_handler_map
 }
 
@@ -277,4 +280,95 @@ fn convert_to_reverse(frame: &Mat) -> Result<Mat, opencv::Error> {
     let mut reversed_frame = Mat::default();
     let _ = flip(&frame, &mut reversed_frame, 1);
     Ok(reversed_frame)
+}
+
+fn convert_to_hough(frame: &Mat) -> Result<Mat, opencv::Error> {
+    let mut lines = Vector::<Vec4i>::new();
+    let copy_frame = match utils::is_grayscale(frame)? {
+        true => frame.clone(),
+        false => convert_to_gray(frame)?,
+    };
+    imgproc::hough_lines_p(
+        &copy_frame,
+        &mut lines,
+        8.0,
+        std::f64::consts::PI / 60.0,
+        100,
+        100.0,
+        5.0,
+    )?;
+    let mut hough_frame = Mat::default();
+    imgproc::cvt_color(&copy_frame, &mut hough_frame, imgproc::COLOR_GRAY2BGR, 0)?;
+    for line in lines.iter() {
+        let pt1 = Point::new(line[0], line[1]);
+        let pt2 = Point::new(line[2], line[3]);
+        imgproc::line(
+            &mut hough_frame,
+            pt1,
+            pt2,
+            Scalar::new(0.0, 0.0, 255.0, 0.0),
+            2,
+            imgproc::LINE_AA,
+            0,
+        )?;
+    }
+    Ok(hough_frame)
+}
+
+pub fn convert_to_sobel(frame: &Mat) -> Result<Mat, opencv::Error> {
+    // エッジ検出時のソーベル演算子のサイズ(3, 5, 7)
+    const KERNEL_SIZE: i32 = 3;
+    // スケールファクター (通常は1.0)
+    const SCALE: f64 = 1.0;
+    // 出力に加算される値 (通常は0.0)
+    const DELTA: f64 = 0.0;
+
+    // グレースケール画像に変換
+    let gray_frame = match utils::is_grayscale(frame)? {
+        true => frame.clone(),
+        false => convert_to_gray(frame)?,
+    };
+
+    let mut grad_x = Mat::default();
+    let mut grad_y = Mat::default();
+
+    // x方向の勾配
+    imgproc::sobel(
+        &gray_frame,
+        &mut grad_x,
+        opencv::core::CV_16S, // 出力のデータ型
+        1,                   // x方向の微分の次数
+        0,                   // y方向の微分の次数
+        KERNEL_SIZE,         // ソーベル演算子のサイズ
+        SCALE,               // スケール
+        DELTA,               // オフセット
+        opencv::core::BORDER_DEFAULT,
+    )?;
+
+    // y方向の勾配
+    imgproc::sobel(
+        &gray_frame,
+        &mut grad_y,
+        opencv::core::CV_16S, // 出力のデータ型
+        0,                   // x方向の微分の次数
+        1,                   // y方向の微分の次数
+        KERNEL_SIZE,         // ソーベル演算子のサイズ
+        SCALE,               // スケール
+        DELTA,               // オフセット
+        opencv::core::BORDER_DEFAULT,
+    )?;
+
+    // 勾配の大きさを計算
+    let mut grad_x_abs = Mat::default();
+    let mut grad_y_abs = Mat::default();
+    let mut sobel_frame = Mat::default();
+
+    // 各方向の勾配を絶対値に変換
+    opencv::core::convert_scale_abs(&grad_x, &mut grad_x_abs, 1.0, 0.0)?;
+    opencv::core::convert_scale_abs(&grad_y, &mut grad_y_abs, 1.0, 0.0)?;
+
+    // x方向とy方向の勾配を加算してエッジ強度を計算
+    opencv::core::add_weighted(&grad_x_abs, 0.5, &grad_y_abs, 0.5, 0.0, &mut sobel_frame, -1)?;
+
+    Ok(sobel_frame)
 }
